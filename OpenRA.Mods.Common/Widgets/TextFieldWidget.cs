@@ -95,6 +95,9 @@ namespace OpenRA.Mods.Common.Widgets
 
 		public override bool YieldKeyboardFocus()
 		{
+			if (Platform.CurrentPlatform == PlatformType.Android)
+				Game.Renderer.StopTextInput();
+
 			OnLoseFocus();
 			return base.YieldKeyboardFocus();
 		}
@@ -126,6 +129,9 @@ namespace OpenRA.Mods.Common.Widgets
 			// Attempt to take keyboard focus
 			if (!RenderBounds.Contains(mi.Location) || !TakeKeyboardFocus())
 				return false;
+
+			if (Platform.CurrentPlatform == PlatformType.Android)
+				Game.Renderer.StartTextInput();
 
 			mouseSelectionActive = true;
 

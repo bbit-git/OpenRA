@@ -77,6 +77,9 @@ namespace OpenRA
 		void SetRelativeMouseMode(bool mode);
 		void SetScaleModifier(float scale);
 
+		void StartTextInput();
+		void StopTextInput();
+
 		GLProfile GLProfile { get; }
 
 		GLProfile[] SupportedGLProfiles { get; }

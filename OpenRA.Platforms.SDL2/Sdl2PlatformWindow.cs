@@ -170,11 +170,16 @@ namespace OpenRA.Platforms.SDL2
 
 				profile = supportedProfiles.Contains(requestProfile) ? requestProfile : supportedProfiles[0];
 
-
 				// Note: This must be called after the CanCreateGLWindow checks above,
 				// which needs to create and destroy its own SDL contexts as a workaround for specific buggy drivers
 				if (SDL.SDL_Init(SDL.SDL_INIT_VIDEO) != 0)
 					Log.Write("graphics", $"SDL initialisation failed: {SDL.SDL_GetError()}");
+
+				if (Platform.CurrentPlatform == PlatformType.Android)
+				{
+					SDL.SDL_SetHint("SDL_HINT_TOUCH_MOUSE_EVENTS", "0");
+					SDL.SDL_SetHint("SDL_HINT_MOUSE_TOUCH_EVENTS", "0");
+				}
 
 				SetSDLAttributes(profile);
 				Console.WriteLine($"Using SDL {GetSDLVersion()} with OpenGL ({profile}) renderer");
@@ -631,5 +636,8 @@ namespace OpenRA.Platforms.SDL2
 			scaleModifier = scale;
 			OnWindowScaleChanged(windowScale, windowScale * oldScaleModifier, windowScale, windowScale * scaleModifier);
 		}
+
+		public void StartTextInput() { VerifyThreadAffinity(); SDL.SDL_StartTextInput(); }
+		public void StopTextInput() { VerifyThreadAffinity(); SDL.SDL_StopTextInput(); }
 	}
 }

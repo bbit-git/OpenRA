@@ -264,7 +264,7 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 					OnSysInfoComplete();
 			}
 
-			if (IntroductionPromptLogic.ShouldShowPrompt())
+			if (IntroductionPromptLogic.ShouldShowPrompt() && Platform.CurrentPlatform != PlatformType.Android)
 			{
 				Game.OpenWindow("MAINMENU_INTRODUCTION_PROMPT", new WidgetArgs
 				{
