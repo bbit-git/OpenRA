@@ -20,6 +20,7 @@ namespace OpenRA.Platforms.Android
 		MainLauncher = true,
 		Icon = "@mipmap/ic_launcher",
 		RoundIcon = "@mipmap/ic_launcher",
+		ScreenOrientation = ScreenOrientation.SensorLandscape,
 		ConfigurationChanges =
 			ConfigChanges.Orientation |
 			ConfigChanges.ScreenSize |

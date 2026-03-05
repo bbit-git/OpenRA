@@ -47,11 +47,16 @@
 		<AndroidNativeLibrary Include="libs\x86_64\libSDL2.so" Abi="x86_64" />
 		<AndroidNativeLibrary Include="libs\arm64-v8a\libfreetype6.so" Abi="arm64-v8a" />
 		<AndroidNativeLibrary Include="libs\x86_64\libfreetype6.so" Abi="x86_64" />
+		<AndroidNativeLibrary Include="libs\arm64-v8a\libsoft_oal.so" Abi="arm64-v8a" />
+		<AndroidNativeLibrary Include="libs\x86_64\libsoft_oal.so" Abi="x86_64" />
+		<AndroidNativeLibrary Include="libs\arm64-v8a\liblua51.so" Abi="arm64-v8a" />
+		<AndroidNativeLibrary Include="libs\x86_64\liblua51.so" Abi="x86_64" />
 	</ItemGroup>
 
 	<!-- Engine data: mods, shaders, and VERSION bundled as Android assets -->
 	<ItemGroup>
 		<AndroidAsset Include="..\VERSION" Link="Assets\engine\VERSION" />
+		<AndroidAsset Include="..\global mix database.dat" Link="Assets\engine\global mix database.dat" />
 		<AndroidAsset Include="..\glsl\**" Link="Assets\engine\glsl\%(RecursiveDir)%(Filename)%(Extension)" />
 		<AndroidAsset Include="..\mods\ra\**" Link="Assets\engine\mods\ra\%(RecursiveDir)%(Filename)%(Extension)" />
 		<AndroidAsset Include="..\mods\common\**" Link="Assets\engine\mods\common\%(RecursiveDir)%(Filename)%(Extension)" />

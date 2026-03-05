@@ -251,7 +251,12 @@ namespace OpenRA
 			// - We can remove any fragmentation in the LOH caused by temporary loading garbage.
 			// - A loading screen is visible, so a delay won't matter to the user.
 			//   Much better to clean up now then to drop frames during gameplay for GC pauses.
-			GCSettings.LargeObjectHeapCompactionMode = GCLargeObjectHeapCompactionMode.CompactOnce;
+			try
+			{
+				GCSettings.LargeObjectHeapCompactionMode = GCLargeObjectHeapCompactionMode.CompactOnce;
+			}
+			catch (PlatformNotSupportedException) { }
+
 			GC.Collect();
 
 			// PostLoadComplete is designed for anything that should trigger at the very end of loading.
@@ -431,6 +436,11 @@ namespace OpenRA
 				Console.WriteLine($"\t{mod.Key} ({mod.Value.Version})");
 
 			var defaultPlatform = Platform.CurrentPlatform == PlatformType.Android ? "SDL2" : "Default";
+
+			// On Android, only the SDL2 platform is available.
+			if (Platform.CurrentPlatform == PlatformType.Android)
+				Settings.Game.Platform = "SDL2";
+
 			var platforms = new[] { Settings.Game.Platform, defaultPlatform, null };
 			foreach (var p in platforms)
 			{

@@ -9,6 +9,7 @@
  */
 #endregion
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 
@@ -70,7 +71,10 @@ namespace OpenRA.Mods.Common.FileSystem
 		public void Mount(Manifest manifest, OpenRA.FileSystem.FileSystem fileSystem, ObjectCreator objectCreator)
 		{
 			foreach (var kv in SystemPackages)
+			{
+				Console.WriteLine($"[ContentFS] Mounting system package: {kv.Key} (alias: {kv.Value})");
 				fileSystem.Mount(kv.Key, kv.Value);
+			}
 
 			if (ContentPackages != null)
 			{
@@ -78,14 +82,18 @@ namespace OpenRA.Mods.Common.FileSystem
 				{
 					try
 					{
+						Console.WriteLine($"[ContentFS] Mounting content package: {kv.Key} (alias: {kv.Value})");
 						fileSystem.Mount(kv.Key, kv.Value);
 					}
-					catch
+					catch (Exception e)
 					{
+						Console.WriteLine($"[ContentFS] Failed to mount content package '{kv.Key}': {e.Message}");
 						isContentAvailable = false;
 					}
 				}
 			}
+
+			Console.WriteLine($"[ContentFS] Content available: {isContentAvailable}");
 
 			if (RequiredContentFiles != null)
 				foreach (var kv in RequiredContentFiles)
@@ -95,8 +103,16 @@ namespace OpenRA.Mods.Common.FileSystem
 
 		bool IFileSystemExternalContent.InstallContentIfRequired(ModData modData)
 		{
+			Console.WriteLine($"[ContentFS] InstallContentIfRequired called. isContentAvailable={isContentAvailable}, ContentInstallerMod={ContentInstallerMod}");
 			if (!isContentAvailable && Game.Mods.TryGetValue(ContentInstallerMod, out var mod))
+			{
+				Console.WriteLine($"[ContentFS] Content not available, switching to installer mod: {ContentInstallerMod}");
 				Game.InitializeMod(mod, new Arguments());
+			}
+			else if (!isContentAvailable)
+			{
+				Console.WriteLine($"[ContentFS] Content not available but installer mod '{ContentInstallerMod}' not found in Game.Mods!");
+			}
 
 			return !isContentAvailable;
 		}

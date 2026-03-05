@@ -11,6 +11,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using OpenRA.Primitives;
 using OpenRA.Traits;
@@ -58,57 +59,65 @@ namespace OpenRA.Graphics
 			// Sort the cursors for better packing onto the sheet.
 			foreach (var kv in modData.Cursors)
 			{
-				var cursorSprites = frameCache[kv.Value.Src];
-				var length = kv.Value.Length ?? cursorSprites.Length - kv.Value.Start;
-
-				if (kv.Value.Start > cursorSprites.Length)
-					throw new YamlException($"Cursor {kv.Value.Name}: {nameof(kv.Value.Start)} is greater than the length of the sprite sequence.");
-
-				if (kv.Value.Length > cursorSprites.Length)
-					throw new YamlException($"Cursor {kv.Value.Name}: {nameof(kv.Value.Length)} is greater than the length of the sprite sequence.");
-
-				var frames = cursorSprites.Skip(kv.Value.Start).Take(length).ToArray();
-				var palette = !string.IsNullOrEmpty(kv.Value.Palette) ? paletteCache[kv.Value.Palette] : null;
-
-				var c = new Cursor
+				try
 				{
-					Name = kv.Key,
-					Bounds = Rectangle.FromLTRB(0, 0, 1, 1),
+					var cursorSprites = frameCache[kv.Value.Src];
+					var length = kv.Value.Length ?? cursorSprites.Length - kv.Value.Start;
 
-					Length = 0,
-					Sprites = new Sprite[frames.Length],
-					Cursors = new IHardwareCursor[frames.Length]
-				};
+					if (kv.Value.Start > cursorSprites.Length)
+						throw new YamlException($"Cursor {kv.Value.Name}: {nameof(kv.Value.Start)} is greater than the length of the sprite sequence.");
 
-				// Hardware cursors have a number of odd platform-specific bugs/limitations.
-				// Reduce the number of edge cases by padding the individual frames such that:
-				// - the hotspot is inside the frame bounds (enforced by SDL)
-				// - all frames within a sequence have the same size (needed for macOS 10.15)
-				// - the frame size is a multiple of 8 (needed for Windows)
-				foreach (var f in frames)
-				{
-					// Hotspot is specified relative to the center of the frame
-					var hotspot = f.Offset.ToInt2() - kv.Value.Hotspot - new int2(f.Size) / 2;
+					if (kv.Value.Length > cursorSprites.Length)
+						throw new YamlException($"Cursor {kv.Value.Name}: {nameof(kv.Value.Length)} is greater than the length of the sprite sequence.");
 
-					// Resolve indexed data to real colours
-					var data = f.Data;
-					var type = f.Type;
-					if (type == SpriteFrameType.Indexed8)
+					var frames = cursorSprites.Skip(kv.Value.Start).Take(length).ToArray();
+					var palette = !string.IsNullOrEmpty(kv.Value.Palette) ? paletteCache[kv.Value.Palette] : null;
+
+					var c = new Cursor
 					{
-						data = ConvertIndexedToBgra(kv.Key, f, palette);
-						type = SpriteFrameType.Bgra32;
+						Name = kv.Key,
+						Bounds = Rectangle.FromLTRB(0, 0, 1, 1),
+
+						Length = 0,
+						Sprites = new Sprite[frames.Length],
+						Cursors = new IHardwareCursor[frames.Length]
+					};
+
+					// Hardware cursors have a number of odd platform-specific bugs/limitations.
+					// Reduce the number of edge cases by padding the individual frames such that:
+					// - the hotspot is inside the frame bounds (enforced by SDL)
+					// - all frames within a sequence have the same size (needed for macOS 10.15)
+					// - the frame size is a multiple of 8 (needed for Windows)
+					foreach (var f in frames)
+					{
+						// Hotspot is specified relative to the center of the frame
+						var hotspot = f.Offset.ToInt2() - kv.Value.Hotspot - new int2(f.Size) / 2;
+
+						// Resolve indexed data to real colours
+						var data = f.Data;
+						var type = f.Type;
+						if (type == SpriteFrameType.Indexed8)
+						{
+							data = ConvertIndexedToBgra(kv.Key, f, palette);
+							type = SpriteFrameType.Bgra32;
+						}
+
+						c.Sprites[c.Length++] = SheetBuilder.Add(data, type, f.Size, 0, hotspot);
+
+						// Bounds relative to the hotspot
+						c.Bounds = Rectangle.Union(c.Bounds, new Rectangle(hotspot, f.Size));
 					}
 
-					c.Sprites[c.Length++] = SheetBuilder.Add(data, type, f.Size, 0, hotspot);
+					// Pad bottom-right edge to make the frame size a multiple of 8
+					c.PaddedSize = 8 * new int2((c.Bounds.Width + 7) / 8, (c.Bounds.Height + 7) / 8);
 
-					// Bounds relative to the hotspot
-					c.Bounds = Rectangle.Union(c.Bounds, new Rectangle(hotspot, f.Size));
+					cursors.Add(kv.Key, c);
 				}
-
-				// Pad bottom-right edge to make the frame size a multiple of 8
-				c.PaddedSize = 8 * new int2((c.Bounds.Width + 7) / 8, (c.Bounds.Height + 7) / 8);
-
-				cursors.Add(kv.Key, c);
+				catch (FileNotFoundException e)
+				{
+					Log.Write("debug", $"Skipping cursor '{kv.Key}': {e.FileName} not found.");
+					Console.WriteLine($"Skipping cursor '{kv.Key}': {e.FileName} not found.");
+				}
 			}
 
 			// Allow the utility to create a cursor manager.
