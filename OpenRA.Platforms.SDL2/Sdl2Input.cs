@@ -216,6 +216,11 @@ namespace OpenRA.Platforms.SDL2
 					case SDL.SDL_EventType.SDL_KEYUP:
 					{
 						var keyCode = (Keycode)e.key.keysym.sym;
+
+						// Map Android back button to Escape
+						if (Platform.CurrentPlatform == PlatformType.Android && keyCode == Keycode.AC_BACK)
+							keyCode = Keycode.ESCAPE;
+
 						var type = e.type == SDL.SDL_EventType.SDL_KEYDOWN ?
 							KeyInputEvent.Down : KeyInputEvent.Up;
 

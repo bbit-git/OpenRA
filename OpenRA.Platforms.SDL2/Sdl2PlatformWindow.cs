@@ -228,10 +228,13 @@ namespace OpenRA.Platforms.SDL2
 				}
 				else if (Platform.CurrentPlatform == PlatformType.Android)
 				{
-					// Android scaling is handled by SDL and the OS.
-					// We query the display DPI to determine the scaling factor.
 					if (SDL.SDL_GetDisplayDPI(videoDisplay, out var ddpi, out _, out _) == 0)
-						windowScale = ddpi / 160f; // Android standard MDPI is 160
+						windowScale = ddpi / 160f;
+
+					// Cap scale so the logical height is at least 480
+					var maxScale = display.h / 480f;
+					if (windowScale > maxScale)
+						windowScale = maxScale;
 				}
 
 				Console.WriteLine($"Desktop resolution: {display.w}x{display.h}");
