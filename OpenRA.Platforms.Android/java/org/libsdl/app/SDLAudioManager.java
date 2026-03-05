@@ -29,7 +29,8 @@ public class SDLAudioManager {
         mAudioRecord = null;
         mAudioDeviceCallback = null;
 
-        if (Build.VERSION.SDK_INT >= 24 /* Android 7.0 (N) */) {
+        if(Build.VERSION.SDK_INT >= 24 /* Android 7.0 (N) */)
+        {
             mAudioDeviceCallback = new AudioDeviceCallback() {
                 @Override
                 public void onAudioDevicesAdded(AudioDeviceInfo[] addedDevices) {
@@ -76,16 +77,12 @@ public class SDLAudioManager {
         }
     }
 
-    protected static int[] open(boolean isCapture, int sampleRate, int audioFormat, int desiredChannels,
-            int desiredFrames, int deviceId) {
+    protected static int[] open(boolean isCapture, int sampleRate, int audioFormat, int desiredChannels, int desiredFrames, int deviceId) {
         int channelConfig;
         int sampleSize;
         int frameSize;
 
-        Log.v(TAG,
-                "Opening " + (isCapture ? "capture" : "playback") + ", requested " + desiredFrames + " frames of "
-                        + desiredChannels + " channel " + getAudioFormatString(audioFormat) + " audio at " + sampleRate
-                        + " Hz");
+        Log.v(TAG, "Opening " + (isCapture ? "capture" : "playback") + ", requested " + desiredFrames + " frames of " + desiredChannels + " channel " + getAudioFormatString(audioFormat) + " audio at " + sampleRate + " Hz");
 
         /* On older devices let's use known good settings */
         if (Build.VERSION.SDK_INT < 21 /* Android 5.0 (LOLLIPOP) */) {
@@ -109,113 +106,114 @@ public class SDLAudioManager {
                 audioFormat = AudioFormat.ENCODING_PCM_16BIT;
             }
         }
-        switch (audioFormat) {
-            case AudioFormat.ENCODING_PCM_8BIT:
-                sampleSize = 1;
-                break;
-            case AudioFormat.ENCODING_PCM_16BIT:
-                sampleSize = 2;
-                break;
-            case AudioFormat.ENCODING_PCM_FLOAT:
-                sampleSize = 4;
-                break;
-            default:
-                Log.v(TAG, "Requested format " + audioFormat + ", getting ENCODING_PCM_16BIT");
-                audioFormat = AudioFormat.ENCODING_PCM_16BIT;
-                sampleSize = 2;
-                break;
+        switch (audioFormat)
+        {
+        case AudioFormat.ENCODING_PCM_8BIT:
+            sampleSize = 1;
+            break;
+        case AudioFormat.ENCODING_PCM_16BIT:
+            sampleSize = 2;
+            break;
+        case AudioFormat.ENCODING_PCM_FLOAT:
+            sampleSize = 4;
+            break;
+        default:
+            Log.v(TAG, "Requested format " + audioFormat + ", getting ENCODING_PCM_16BIT");
+            audioFormat = AudioFormat.ENCODING_PCM_16BIT;
+            sampleSize = 2;
+            break;
         }
 
         if (isCapture) {
             switch (desiredChannels) {
-                case 1:
-                    channelConfig = AudioFormat.CHANNEL_IN_MONO;
-                    break;
-                case 2:
-                    channelConfig = AudioFormat.CHANNEL_IN_STEREO;
-                    break;
-                default:
-                    Log.v(TAG, "Requested " + desiredChannels + " channels, getting stereo");
-                    desiredChannels = 2;
-                    channelConfig = AudioFormat.CHANNEL_IN_STEREO;
-                    break;
+            case 1:
+                channelConfig = AudioFormat.CHANNEL_IN_MONO;
+                break;
+            case 2:
+                channelConfig = AudioFormat.CHANNEL_IN_STEREO;
+                break;
+            default:
+                Log.v(TAG, "Requested " + desiredChannels + " channels, getting stereo");
+                desiredChannels = 2;
+                channelConfig = AudioFormat.CHANNEL_IN_STEREO;
+                break;
             }
         } else {
             switch (desiredChannels) {
-                case 1:
-                    channelConfig = AudioFormat.CHANNEL_OUT_MONO;
-                    break;
-                case 2:
-                    channelConfig = AudioFormat.CHANNEL_OUT_STEREO;
-                    break;
-                case 3:
-                    channelConfig = AudioFormat.CHANNEL_OUT_STEREO | AudioFormat.CHANNEL_OUT_FRONT_CENTER;
-                    break;
-                case 4:
-                    channelConfig = AudioFormat.CHANNEL_OUT_QUAD;
-                    break;
-                case 5:
-                    channelConfig = AudioFormat.CHANNEL_OUT_QUAD | AudioFormat.CHANNEL_OUT_FRONT_CENTER;
-                    break;
-                case 6:
+            case 1:
+                channelConfig = AudioFormat.CHANNEL_OUT_MONO;
+                break;
+            case 2:
+                channelConfig = AudioFormat.CHANNEL_OUT_STEREO;
+                break;
+            case 3:
+                channelConfig = AudioFormat.CHANNEL_OUT_STEREO | AudioFormat.CHANNEL_OUT_FRONT_CENTER;
+                break;
+            case 4:
+                channelConfig = AudioFormat.CHANNEL_OUT_QUAD;
+                break;
+            case 5:
+                channelConfig = AudioFormat.CHANNEL_OUT_QUAD | AudioFormat.CHANNEL_OUT_FRONT_CENTER;
+                break;
+            case 6:
+                channelConfig = AudioFormat.CHANNEL_OUT_5POINT1;
+                break;
+            case 7:
+                channelConfig = AudioFormat.CHANNEL_OUT_5POINT1 | AudioFormat.CHANNEL_OUT_BACK_CENTER;
+                break;
+            case 8:
+                if (Build.VERSION.SDK_INT >= 23 /* Android 6.0 (M) */) {
+                    channelConfig = AudioFormat.CHANNEL_OUT_7POINT1_SURROUND;
+                } else {
+                    Log.v(TAG, "Requested " + desiredChannels + " channels, getting 5.1 surround");
+                    desiredChannels = 6;
                     channelConfig = AudioFormat.CHANNEL_OUT_5POINT1;
-                    break;
-                case 7:
-                    channelConfig = AudioFormat.CHANNEL_OUT_5POINT1 | AudioFormat.CHANNEL_OUT_BACK_CENTER;
-                    break;
-                case 8:
-                    if (Build.VERSION.SDK_INT >= 23 /* Android 6.0 (M) */) {
-                        channelConfig = AudioFormat.CHANNEL_OUT_7POINT1_SURROUND;
-                    } else {
-                        Log.v(TAG, "Requested " + desiredChannels + " channels, getting 5.1 surround");
-                        desiredChannels = 6;
-                        channelConfig = AudioFormat.CHANNEL_OUT_5POINT1;
-                    }
-                    break;
-                default:
-                    Log.v(TAG, "Requested " + desiredChannels + " channels, getting stereo");
-                    desiredChannels = 2;
-                    channelConfig = AudioFormat.CHANNEL_OUT_STEREO;
-                    break;
+                }
+                break;
+            default:
+                Log.v(TAG, "Requested " + desiredChannels + " channels, getting stereo");
+                desiredChannels = 2;
+                channelConfig = AudioFormat.CHANNEL_OUT_STEREO;
+                break;
             }
 
-            /*
-             * Log.v(TAG, "Speaker configuration (and order of channels):");
-             *
-             * if ((channelConfig & 0x00000004) != 0) {
-             * Log.v(TAG, "   CHANNEL_OUT_FRONT_LEFT");
-             * }
-             * if ((channelConfig & 0x00000008) != 0) {
-             * Log.v(TAG, "   CHANNEL_OUT_FRONT_RIGHT");
-             * }
-             * if ((channelConfig & 0x00000010) != 0) {
-             * Log.v(TAG, "   CHANNEL_OUT_FRONT_CENTER");
-             * }
-             * if ((channelConfig & 0x00000020) != 0) {
-             * Log.v(TAG, "   CHANNEL_OUT_LOW_FREQUENCY");
-             * }
-             * if ((channelConfig & 0x00000040) != 0) {
-             * Log.v(TAG, "   CHANNEL_OUT_BACK_LEFT");
-             * }
-             * if ((channelConfig & 0x00000080) != 0) {
-             * Log.v(TAG, "   CHANNEL_OUT_BACK_RIGHT");
-             * }
-             * if ((channelConfig & 0x00000100) != 0) {
-             * Log.v(TAG, "   CHANNEL_OUT_FRONT_LEFT_OF_CENTER");
-             * }
-             * if ((channelConfig & 0x00000200) != 0) {
-             * Log.v(TAG, "   CHANNEL_OUT_FRONT_RIGHT_OF_CENTER");
-             * }
-             * if ((channelConfig & 0x00000400) != 0) {
-             * Log.v(TAG, "   CHANNEL_OUT_BACK_CENTER");
-             * }
-             * if ((channelConfig & 0x00000800) != 0) {
-             * Log.v(TAG, "   CHANNEL_OUT_SIDE_LEFT");
-             * }
-             * if ((channelConfig & 0x00001000) != 0) {
-             * Log.v(TAG, "   CHANNEL_OUT_SIDE_RIGHT");
-             * }
-             */
+/*
+            Log.v(TAG, "Speaker configuration (and order of channels):");
+
+            if ((channelConfig & 0x00000004) != 0) {
+                Log.v(TAG, "   CHANNEL_OUT_FRONT_LEFT");
+            }
+            if ((channelConfig & 0x00000008) != 0) {
+                Log.v(TAG, "   CHANNEL_OUT_FRONT_RIGHT");
+            }
+            if ((channelConfig & 0x00000010) != 0) {
+                Log.v(TAG, "   CHANNEL_OUT_FRONT_CENTER");
+            }
+            if ((channelConfig & 0x00000020) != 0) {
+                Log.v(TAG, "   CHANNEL_OUT_LOW_FREQUENCY");
+            }
+            if ((channelConfig & 0x00000040) != 0) {
+                Log.v(TAG, "   CHANNEL_OUT_BACK_LEFT");
+            }
+            if ((channelConfig & 0x00000080) != 0) {
+                Log.v(TAG, "   CHANNEL_OUT_BACK_RIGHT");
+            }
+            if ((channelConfig & 0x00000100) != 0) {
+                Log.v(TAG, "   CHANNEL_OUT_FRONT_LEFT_OF_CENTER");
+            }
+            if ((channelConfig & 0x00000200) != 0) {
+                Log.v(TAG, "   CHANNEL_OUT_FRONT_RIGHT_OF_CENTER");
+            }
+            if ((channelConfig & 0x00000400) != 0) {
+                Log.v(TAG, "   CHANNEL_OUT_BACK_CENTER");
+            }
+            if ((channelConfig & 0x00000800) != 0) {
+                Log.v(TAG, "   CHANNEL_OUT_SIDE_LEFT");
+            }
+            if ((channelConfig & 0x00001000) != 0) {
+                Log.v(TAG, "   CHANNEL_OUT_SIDE_RIGHT");
+            }
+*/
         }
         frameSize = (sampleSize * desiredChannels);
 
@@ -237,8 +235,7 @@ public class SDLAudioManager {
                 mAudioRecord = new AudioRecord(MediaRecorder.AudioSource.DEFAULT, sampleRate,
                         channelConfig, audioFormat, desiredFrames * frameSize);
 
-                // see notes about AudioTrack state in audioOpen(), above. Probably also applies
-                // here.
+                // see notes about AudioTrack state in audioOpen(), above. Probably also applies here.
                 if (mAudioRecord.getState() != AudioRecord.STATE_INITIALIZED) {
                     Log.e(TAG, "Failed during initialization of AudioRecord");
                     mAudioRecord.release();
@@ -259,15 +256,11 @@ public class SDLAudioManager {
 
         } else {
             if (mAudioTrack == null) {
-                mAudioTrack = new AudioTrack(AudioManager.STREAM_MUSIC, sampleRate, channelConfig, audioFormat,
-                        desiredFrames * frameSize, AudioTrack.MODE_STREAM);
+                mAudioTrack = new AudioTrack(AudioManager.STREAM_MUSIC, sampleRate, channelConfig, audioFormat, desiredFrames * frameSize, AudioTrack.MODE_STREAM);
 
-                // Instantiating AudioTrack can "succeed" without an exception and the track may
-                // still be invalid
-                // Ref:
-                // https://android.googlesource.com/platform/frameworks/base/+/refs/heads/master/media/java/android/media/AudioTrack.java
-                // Ref:
-                // http://developer.android.com/reference/android/media/AudioTrack.html#getState()
+                // Instantiating AudioTrack can "succeed" without an exception and the track may still be invalid
+                // Ref: https://android.googlesource.com/platform/frameworks/base/+/refs/heads/master/media/java/android/media/AudioTrack.java
+                // Ref: http://developer.android.com/reference/android/media/AudioTrack.html#getState()
                 if (mAudioTrack.getState() != AudioTrack.STATE_INITIALIZED) {
                     /* Try again, with safer values */
 
@@ -290,8 +283,7 @@ public class SDLAudioManager {
         }
         results[3] = desiredFrames;
 
-        Log.v(TAG, "Opening " + (isCapture ? "capture" : "playback") + ", got " + results[3] + " frames of "
-                + results[2] + " channel " + getAudioFormatString(results[1]) + " audio at " + results[0] + " Hz");
+        Log.v(TAG, "Opening " + (isCapture ? "capture" : "playback") + ", got " + results[3] + " frames of " + results[2] + " channel " + getAudioFormatString(results[1]) + " audio at " + results[0] + " Hz");
 
         return results;
     }
@@ -299,10 +291,9 @@ public class SDLAudioManager {
     private static AudioDeviceInfo getInputAudioDeviceInfo(int deviceId) {
         if (Build.VERSION.SDK_INT >= 24 /* Android 7.0 (N) */) {
             AudioManager audioManager = (AudioManager) mContext.getSystemService(Context.AUDIO_SERVICE);
-            AudioDeviceInfo[] devices = audioManager.getDevices(AudioManager.GET_DEVICES_INPUTS);
-            for (int i = 0; i < devices.length; i++) {
-                if (devices[i].getId() == deviceId) {
-                    return devices[i];
+            for (AudioDeviceInfo deviceInfo : audioManager.getDevices(AudioManager.GET_DEVICES_INPUTS)) {
+                if (deviceInfo.getId() == deviceId) {
+                    return deviceInfo;
                 }
             }
             return null;
@@ -314,10 +305,9 @@ public class SDLAudioManager {
     private static AudioDeviceInfo getOutputAudioDeviceInfo(int deviceId) {
         if (Build.VERSION.SDK_INT >= 24 /* Android 7.0 (N) */) {
             AudioManager audioManager = (AudioManager) mContext.getSystemService(Context.AUDIO_SERVICE);
-            AudioDeviceInfo[] devices = audioManager.getDevices(AudioManager.GET_DEVICES_OUTPUTS);
-            for (int i = 0; i < devices.length; i++) {
-                if (devices[i].getId() == deviceId) {
-                    return devices[i];
+            for (AudioDeviceInfo deviceInfo : audioManager.getDevices(AudioManager.GET_DEVICES_OUTPUTS)) {
+                if (deviceInfo.getId() == deviceId) {
+                    return deviceInfo;
                 }
             }
             return null;
@@ -347,11 +337,11 @@ public class SDLAudioManager {
         if (Build.VERSION.SDK_INT >= 24 /* Android 7.0 (N) */) {
             AudioManager audioManager = (AudioManager) mContext.getSystemService(Context.AUDIO_SERVICE);
             AudioDeviceInfo[] devices = audioManager.getDevices(AudioManager.GET_DEVICES_OUTPUTS);
-            int[] currentDevices = new int[devices.length];
+            int[] ids = new int[devices.length];
             for (int i = 0; i < devices.length; i++) {
-                currentDevices[i] = devices[i].getId();
+                ids[i] = devices[i].getId();
             }
-            return currentDevices;
+            return ids;
         } else {
             return NO_DEVICES;
         }
@@ -364,11 +354,11 @@ public class SDLAudioManager {
         if (Build.VERSION.SDK_INT >= 24 /* Android 7.0 (N) */) {
             AudioManager audioManager = (AudioManager) mContext.getSystemService(Context.AUDIO_SERVICE);
             AudioDeviceInfo[] devices = audioManager.getDevices(AudioManager.GET_DEVICES_INPUTS);
-            int[] currentDevices = new int[devices.length];
+            int[] ids = new int[devices.length];
             for (int i = 0; i < devices.length; i++) {
-                currentDevices[i] = devices[i].getId();
+                ids[i] = devices[i].getId();
             }
-            return currentDevices;
+            return ids;
         } else {
             return NO_DEVICES;
         }
@@ -377,8 +367,7 @@ public class SDLAudioManager {
     /**
      * This method is called by SDL using JNI.
      */
-    public static int[] audioOpen(int sampleRate, int audioFormat, int desiredChannels, int desiredFrames,
-            int deviceId) {
+    public static int[] audioOpen(int sampleRate, int audioFormat, int desiredChannels, int desiredFrames, int deviceId) {
         return open(false, sampleRate, audioFormat, desiredChannels, desiredFrames, deviceId);
     }
 
@@ -392,8 +381,7 @@ public class SDLAudioManager {
         }
 
         if (android.os.Build.VERSION.SDK_INT < 21 /* Android 5.0 (LOLLIPOP) */) {
-            Log.e(TAG,
-                    "Attempted to make an incompatible audio call with uninitialized audio! (floating-point output is supported since Android 5.0 Lollipop)");
+            Log.e(TAG, "Attempted to make an incompatible audio call with uninitialized audio! (floating-point output is supported since Android 5.0 Lollipop)");
             return;
         }
 
@@ -404,7 +392,7 @@ public class SDLAudioManager {
             } else if (result == 0) {
                 try {
                     Thread.sleep(1);
-                } catch (InterruptedException e) {
+                } catch(InterruptedException e) {
                     // Nom nom
                 }
             } else {
@@ -430,7 +418,7 @@ public class SDLAudioManager {
             } else if (result == 0) {
                 try {
                     Thread.sleep(1);
-                } catch (InterruptedException e) {
+                } catch(InterruptedException e) {
                     // Nom nom
                 }
             } else {
@@ -449,14 +437,14 @@ public class SDLAudioManager {
             return;
         }
 
-        for (int i = 0; i < buffer.length;) {
+        for (int i = 0; i < buffer.length; ) {
             int result = mAudioTrack.write(buffer, i, buffer.length - i);
             if (result > 0) {
                 i += result;
             } else if (result == 0) {
                 try {
                     Thread.sleep(1);
-                } catch (InterruptedException e) {
+                } catch(InterruptedException e) {
                     // Nom nom
                 }
             } else {
@@ -469,8 +457,7 @@ public class SDLAudioManager {
     /**
      * This method is called by SDL using JNI.
      */
-    public static int[] captureOpen(int sampleRate, int audioFormat, int desiredChannels, int desiredFrames,
-            int deviceId) {
+    public static int[] captureOpen(int sampleRate, int audioFormat, int desiredChannels, int desiredFrames, int deviceId) {
         return open(true, sampleRate, audioFormat, desiredChannels, desiredFrames, deviceId);
     }
 
@@ -479,8 +466,7 @@ public class SDLAudioManager {
         if (Build.VERSION.SDK_INT < 23 /* Android 6.0 (M) */) {
             return 0;
         } else {
-            return mAudioRecord.read(buffer, 0, buffer.length,
-                    blocking ? AudioRecord.READ_BLOCKING : AudioRecord.READ_NON_BLOCKING);
+            return mAudioRecord.read(buffer, 0, buffer.length, blocking ? AudioRecord.READ_BLOCKING : AudioRecord.READ_NON_BLOCKING);
         }
     }
 
@@ -489,8 +475,7 @@ public class SDLAudioManager {
         if (Build.VERSION.SDK_INT < 23 /* Android 6.0 (M) */) {
             return mAudioRecord.read(buffer, 0, buffer.length);
         } else {
-            return mAudioRecord.read(buffer, 0, buffer.length,
-                    blocking ? AudioRecord.READ_BLOCKING : AudioRecord.READ_NON_BLOCKING);
+            return mAudioRecord.read(buffer, 0, buffer.length, blocking ? AudioRecord.READ_BLOCKING : AudioRecord.READ_NON_BLOCKING);
         }
     }
 
@@ -499,8 +484,7 @@ public class SDLAudioManager {
         if (Build.VERSION.SDK_INT < 23 /* Android 6.0 (M) */) {
             return mAudioRecord.read(buffer, 0, buffer.length);
         } else {
-            return mAudioRecord.read(buffer, 0, buffer.length,
-                    blocking ? AudioRecord.READ_BLOCKING : AudioRecord.READ_NON_BLOCKING);
+            return mAudioRecord.read(buffer, 0, buffer.length, blocking ? AudioRecord.READ_BLOCKING : AudioRecord.READ_NON_BLOCKING);
         }
     }
 

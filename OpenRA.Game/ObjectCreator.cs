@@ -45,6 +45,14 @@ namespace OpenRA
 
 		static void LoadAssembly(List<Assembly> assemblyList, string resolvedPath)
 		{
+			if (Platform.CurrentPlatform == PlatformType.Android)
+			{
+				// On Android, assemblies are bundled in the APK and available via Assembly.Load.
+				var assemblyName = Path.GetFileNameWithoutExtension(resolvedPath);
+				assemblyList.Add(Assembly.Load(assemblyName));
+				return;
+			}
+
 			// .NET doesn't provide any way of querying the metadata of an assembly without either:
 			//   (a) loading duplicate data into the application domain, breaking the world.
 			//   (b) crashing if the assembly has already been loaded.

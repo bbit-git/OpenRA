@@ -23,6 +23,8 @@
 	<ItemGroup>
 		<ProjectReference Include="..\OpenRA.Game\OpenRA.Game.csproj" />
 		<ProjectReference Include="..\OpenRA.Platforms.SDL2\OpenRA.Platforms.SDL2.csproj" />
+		<ProjectReference Include="..\OpenRA.Mods.Common\OpenRA.Mods.Common.csproj" />
+		<ProjectReference Include="..\OpenRA.Mods.Cnc\OpenRA.Mods.Cnc.csproj" />
 	</ItemGroup>
 
 
@@ -38,6 +40,23 @@
 	<ItemGroup>
 		<AndroidResource Include="Resources\mipmap-*\*.png" />
 		<AndroidResource Include="Resources\values\*.xml" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<AndroidNativeLibrary Include="libs\arm64-v8a\libSDL2.so" Abi="arm64-v8a" />
+		<AndroidNativeLibrary Include="libs\x86_64\libSDL2.so" Abi="x86_64" />
+		<AndroidNativeLibrary Include="libs\arm64-v8a\libfreetype6.so" Abi="arm64-v8a" />
+		<AndroidNativeLibrary Include="libs\x86_64\libfreetype6.so" Abi="x86_64" />
+	</ItemGroup>
+
+	<!-- Engine data: mods, shaders, and VERSION bundled as Android assets -->
+	<ItemGroup>
+		<AndroidAsset Include="..\VERSION" Link="Assets\engine\VERSION" />
+		<AndroidAsset Include="..\glsl\**" Link="Assets\engine\glsl\%(RecursiveDir)%(Filename)%(Extension)" />
+		<AndroidAsset Include="..\mods\ra\**" Link="Assets\engine\mods\ra\%(RecursiveDir)%(Filename)%(Extension)" />
+		<AndroidAsset Include="..\mods\common\**" Link="Assets\engine\mods\common\%(RecursiveDir)%(Filename)%(Extension)" />
+		<AndroidAsset Include="..\mods\common-content\**" Link="Assets\engine\mods\common-content\%(RecursiveDir)%(Filename)%(Extension)" />
+		<AndroidAsset Include="..\mods\ra-content\**" Link="Assets\engine\mods\ra-content\%(RecursiveDir)%(Filename)%(Extension)" />
 	</ItemGroup>
 </Project>
 
