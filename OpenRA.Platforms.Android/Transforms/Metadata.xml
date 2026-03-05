@@ -1,0 +1,12 @@
+<metadata>
+  <!-- Remove package-private (non-public) SDL helper classes that the binding generator can't
+       resolve because they have no public visibility. SDLActivity itself is kept so that
+       Org.Libsdl.App.SDLActivity is available in C# for MainActivity to extend. -->
+  <remove-node path="/api/package[@name='org.libsdl.app']/class[@name='SDLClipboardHandler']" />
+  <remove-node path="/api/package[@name='org.libsdl.app']/class[@name='SDLGenericMotionListener_API12']" />
+  <remove-node path="/api/package[@name='org.libsdl.app']/class[@name='SDLHapticHandler']" />
+  <remove-node path="/api/package[@name='org.libsdl.app']/class[@name='SDLJoystickHandler']" />
+  <remove-node path="/api/package[@name='org.libsdl.app']/class[@name='DummyEdit']" />
+  <remove-node path="/api/package[@name='org.libsdl.app']/class[@name='SDLInputConnection']" />
+  <remove-node path="/api/package[@name='org.libsdl.app']/class[@name='SDLMain']" />
+</metadata>
