@@ -28,7 +28,7 @@ namespace OpenRA.Platforms.SDL2
 			{
 				return new OpenAlSoundEngine(device);
 			}
-			catch (InvalidOperationException e)
+			catch (Exception e) when (e is InvalidOperationException or DllNotFoundException)
 			{
 				Log.Write("sound", "Failed to initialize OpenAL device. Error was");
 				Log.Write("sound", e);

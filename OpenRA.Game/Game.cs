@@ -17,6 +17,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Reflection;
 using System.Runtime;
 using System.Threading;
 using OpenRA.Graphics;
@@ -429,7 +430,8 @@ namespace OpenRA
 			foreach (var mod in ExternalMods)
 				Console.WriteLine($"\t{mod.Key} ({mod.Value.Version})");
 
-			var platforms = new[] { Settings.Game.Platform, "Default", null };
+			var defaultPlatform = Platform.CurrentPlatform == PlatformType.Android ? "SDL2" : "Default";
+			var platforms = new[] { Settings.Game.Platform, defaultPlatform, null };
 			foreach (var p in platforms)
 			{
 				if (p == null)
@@ -447,6 +449,7 @@ namespace OpenRA
 				catch (Exception e)
 				{
 					Log.Write("graphics", $"{e}");
+					Console.WriteLine($"Renderer initialization failed: {e}");
 					Console.WriteLine("Renderer initialization failed. Check graphics.log for details.");
 
 					Renderer?.Dispose();
@@ -460,10 +463,23 @@ namespace OpenRA
 
 		public static IPlatform CreatePlatform(string platformName)
 		{
-			var rendererPath = Path.Combine(Platform.BinDir, "OpenRA.Platforms." + platformName + ".dll");
+			var assemblyName = "OpenRA.Platforms." + platformName;
+			Assembly assembly;
 
-			var loader = new AssemblyLoader(rendererPath);
-			var platformType = loader.LoadDefaultAssembly().GetTypes().SingleOrDefault(t => typeof(IPlatform).IsAssignableFrom(t));
+			if (Platform.CurrentPlatform == PlatformType.Android)
+			{
+				// On Android, assemblies are bundled in the APK and already available
+				// in the default AssemblyLoadContext. File-based loading does not work.
+				assembly = Assembly.Load(assemblyName);
+			}
+			else
+			{
+				var rendererPath = Path.Combine(Platform.BinDir, assemblyName + ".dll");
+				var loader = new AssemblyLoader(rendererPath);
+				assembly = loader.LoadDefaultAssembly();
+			}
+
+			var platformType = assembly.GetTypes().SingleOrDefault(t => typeof(IPlatform).IsAssignableFrom(t));
 
 			if (platformType == null)
 				throw new InvalidOperationException("Platform dll must include exactly one IPlatform implementation.");

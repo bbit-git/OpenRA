@@ -92,6 +92,10 @@ endif
 	@./fetch-geoip.sh
 
 android:
+	@if [ ! -f OpenRA.Platforms.Android/libs/arm64-v8a/libSDL2.so ]; then \
+		echo "Native SDL2 libraries not found. Run ./build-android-libs.sh first."; \
+		exit 1; \
+	fi
 	@echo "Building OpenRA Android APK..."
 	@$(DOTNET) build OpenRA.Platforms.Android/OpenRA.Platforms.Android.csproj -c ${CONFIGURATION} \
 		-p:AndroidSdkDirectory=/home/andrzej/Unity/Hub/Editor/2023.1.11f1/Editor/Data/PlaybackEngines/AndroidPlayer/SDK \
