@@ -44,6 +44,31 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 			var graphicSettings = modData.GetSettings<GraphicSettings>();
 			var gameSettings = modData.GetSettings<GameSettings>();
 
+			// Touch layout uses tabs instead of a scroll panel
+			var profileTab = widget.GetOrNull<ButtonWidget>("PROFILE_TAB");
+			if (profileTab != null)
+			{
+				var activeTab = "PROFILE";
+				var profilePanel = widget.Get("PROFILE_PANEL");
+				var inputPanel = widget.Get("INPUT_PANEL");
+				var displayPanel = widget.Get("DISPLAY_PANEL");
+
+				profilePanel.IsVisible = () => activeTab == "PROFILE";
+				inputPanel.IsVisible = () => activeTab == "INPUT";
+				displayPanel.IsVisible = () => activeTab == "DISPLAY";
+
+				var inputTab = widget.Get<ButtonWidget>("INPUT_TAB");
+				var displayTab = widget.Get<ButtonWidget>("DISPLAY_TAB");
+
+				profileTab.IsHighlighted = () => activeTab == "PROFILE";
+				inputTab.IsHighlighted = () => activeTab == "INPUT";
+				displayTab.IsHighlighted = () => activeTab == "DISPLAY";
+
+				profileTab.OnClick = () => activeTab = "PROFILE";
+				inputTab.OnClick = () => activeTab = "INPUT";
+				displayTab.OnClick = () => activeTab = "DISPLAY";
+			}
+
 			var controlTypes = new Dictionary<MouseControlStyle, string>
 			{
 				{ MouseControlStyle.Classic, FluentProvider.GetMessage(Classic) },
@@ -176,7 +201,9 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 				onComplete();
 			};
 
-			SettingsUtils.AdjustSettingsScrollPanelLayout(widget.Get<ScrollPanelWidget>("SETTINGS_SCROLLPANEL"));
+			var scrollPanel = widget.GetOrNull<ScrollPanelWidget>("SETTINGS_SCROLLPANEL");
+			if (scrollPanel != null)
+				SettingsUtils.AdjustSettingsScrollPanelLayout(scrollPanel);
 		}
 	}
 }

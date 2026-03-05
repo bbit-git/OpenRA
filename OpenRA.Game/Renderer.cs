@@ -35,6 +35,9 @@ namespace OpenRA
 		public bool WindowHasInputFocus => Window.HasInputFocus;
 		public bool WindowIsSuspended => Window.IsSuspended;
 
+		public void StartTextInput() { Window.StartTextInput(); }
+		public void StopTextInput() { Window.StopTextInput(); }
+
 		public IReadOnlyDictionary<string, SpriteFont> Fonts;
 
 		internal IPlatformWindow Window { get; }

@@ -108,7 +108,7 @@ namespace OpenRA.Mods.Common.Widgets
 		public void AttachPanel(Widget p, Action onCancel)
 		{
 			if (panel != null)
-				throw new InvalidOperationException("Attempted to attach a panel to an open dropdown");
+				return;
 			panel = p;
 
 			// Mask to prevent any clicks from being sent to other widgets
