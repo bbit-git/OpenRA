@@ -108,7 +108,13 @@ namespace OpenRA.Mods.Common.Widgets
 		public void AttachPanel(Widget p, Action onCancel)
 		{
 			if (panel != null)
-				return;
+			{
+				if (Platform.CurrentPlatform == PlatformType.Android)
+					return;
+
+				throw new InvalidOperationException("Attempted to attach a panel to an open dropdown");
+			}
+
 			panel = p;
 
 			// Mask to prevent any clicks from being sent to other widgets

@@ -358,6 +358,13 @@ Background@CONTENT_PROMPT_PANEL:
 			Text: modcontent-installprompt
 			Align: Center
 			WordWrap: true
+		Checkbox@OWNERSHIP_CHECKBOX:
+			X: 30
+			Y: PARENT_HEIGHT - 80
+			Width: PARENT_WIDTH - 60
+			Height: 20
+			Font: Regular
+			Text: checkbox-ownership-confirmation
 		Button@ADVANCED_BUTTON:
 			X: 30
 			Y: PARENT_HEIGHT - 52
