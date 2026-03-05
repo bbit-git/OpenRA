@@ -16,7 +16,7 @@ using System.Runtime.InteropServices;
 
 namespace OpenRA
 {
-	public enum PlatformType { Unknown, Windows, OSX, Linux }
+	public enum PlatformType { Unknown, Windows, OSX, Linux, Android }
 
 	public enum SupportDirType { System, ModernUser, LegacyUser, User }
 
@@ -41,6 +41,10 @@ namespace OpenRA
 		{
 			if (Environment.OSVersion.Platform == PlatformID.Win32NT)
 				return PlatformType.Windows;
+
+#if ANDROID
+			return PlatformType.Android;
+#endif
 
 			try
 			{
@@ -183,6 +187,14 @@ namespace OpenRA
 					modernUserSupportPath = Path.Combine(xdgConfigHome, "openra") + Path.DirectorySeparatorChar;
 					systemSupportPath = "/var/games/openra/";
 
+					break;
+				}
+
+				case PlatformType.Android:
+				{
+					// MyDocuments on Android usually maps to the app's internal files directory/OpenRA
+					modernUserSupportPath = legacyUserSupportPath = systemSupportPath =
+						Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "OpenRA") + Path.DirectorySeparatorChar;
 					break;
 				}
 

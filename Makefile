@@ -45,7 +45,7 @@ gameinstalldir ?= $(libdir)/openra
 
 # Toolchain
 CWD = $(shell pwd)
-DOTNET = dotnet
+DOTNET = $(shell if [ -f /home/andrzej/.dotnet/dotnet ]; then echo /home/andrzej/.dotnet/dotnet; else echo dotnet; fi)
 RM = rm
 RM_R = $(RM) -r
 RM_F = $(RM) -f
@@ -90,6 +90,15 @@ ifeq ($(TARGETPLATFORM), unix-generic)
 	@./configure-system-libraries.sh
 endif
 	@./fetch-geoip.sh
+
+android:
+	@echo "Building OpenRA Android APK..."
+	@$(DOTNET) build OpenRA.Platforms.Android/OpenRA.Platforms.Android.csproj -c ${CONFIGURATION} \
+		-p:AndroidSdkDirectory=/home/andrzej/Unity/Hub/Editor/2023.1.11f1/Editor/Data/PlaybackEngines/AndroidPlayer/SDK \
+		-p:AndroidNdkDirectory=/home/andrzej/Unity/Hub/Editor/2023.1.11f1/Editor/Data/PlaybackEngines/AndroidPlayer/NDK \
+		-p:JavaSdkDirectory=/home/andrzej/Unity/Hub/Editor/2023.1.11f1/Editor/Data/PlaybackEngines/AndroidPlayer/OpenJDK \
+		-p:AcceptAndroidSDKLicenses=True
+
 
 # Deleting the intermediate / output directories ensures the build directory is actually clean
 clean:

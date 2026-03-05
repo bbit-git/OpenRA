@@ -1,0 +1,43 @@
+<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<TargetFramework>net8.0-android</TargetFramework>
+		<SupportedOSPlatformVersion>21</SupportedOSPlatformVersion>
+		<OutputType>Exe</OutputType>
+		<Nullable>disable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<UseMaui>false</UseMaui>
+		<!-- Android-specific -->
+		<AndroidApplication>true</AndroidApplication>
+		<AndroidGenerateApplicationPackage>true</AndroidGenerateApplicationPackage>
+		<AndroidPackageFormat>apk</AndroidPackageFormat>
+		<!-- Stability fixes for Mono on Android -->
+		<PublishTrimmed>false</PublishTrimmed>
+		<RunAOTCompilation>false</RunAOTCompilation>
+		<AndroidLinkMode>None</AndroidLinkMode>
+		<!-- Target multiple architectures -->
+		<RuntimeIdentifiers>android-arm64;android-x64</RuntimeIdentifiers>
+		<!-- Override global OutputPath to avoid metadata conflicts -->
+		<AppendTargetFrameworkToOutputPath>true</AppendTargetFrameworkToOutputPath>
+		<OutputPath>obj/bin</OutputPath>
+	</PropertyGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\OpenRA.Game\OpenRA.Game.csproj" />
+		<ProjectReference Include="..\OpenRA.Platforms.SDL2\OpenRA.Platforms.SDL2.csproj" />
+	</ItemGroup>
+
+
+	<ItemGroup>
+		<!-- sdl2.jar is recompiled from our patched Java sources (SDLMain calls runGameLoop() via
+		     reflection). Bind=true lets the C# compiler see Org.Libsdl.App.SDLActivity so that
+		     MainActivity can extend it directly. -->
+		<AndroidLibrary Include="sdl2.jar" Bind="true" />
+		<AndroidJavaSource Remove="java\**\*.java" />
+	</ItemGroup>
+
+
+	<ItemGroup>
+		<AndroidResource Include="Resources\mipmap-*\*.png" />
+		<AndroidResource Include="Resources\values\*.xml" />
+	</ItemGroup>
+</Project>
+
