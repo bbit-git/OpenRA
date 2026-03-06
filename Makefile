@@ -45,13 +45,16 @@ gameinstalldir ?= $(libdir)/openra
 
 # Toolchain
 CWD = $(shell pwd)
-DOTNET = $(shell if [ -f /home/andrzej/.dotnet/dotnet ]; then echo /home/andrzej/.dotnet/dotnet; else echo dotnet; fi)
+DOTNET = $(shell if [ -f $(HOME)/.dotnet/dotnet ]; then echo $(HOME)/.dotnet/dotnet; else echo dotnet; fi)
 RM = rm
 RM_R = $(RM) -r
 RM_F = $(RM) -f
 RM_RF = $(RM) -rf
 
 CONFIGURATION ?= Release
+JAVA_HOME ?= /usr/lib/jvm/java-17-openjdk-amd64
+ANDROID_SDK ?= $(HOME)/Android/Sdk
+ANDROID_NDK ?= $(HOME)/Android/Ndk
 DOTNET_RID = $(shell ${DOTNET} --info | grep RID: | cut -w -f3)
 ARCH_X64 = $(shell echo ${DOTNET_RID} | grep x64)
 
@@ -96,11 +99,19 @@ android:
 		echo "Native SDL2 libraries not found. Run ./build-android-libs.sh first."; \
 		exit 1; \
 	fi
+	@echo "Recompiling sdl2.jar from Java sources..."
+	@rm -rf /tmp/sdl2-build && mkdir -p /tmp/sdl2-build
+	@$(JAVA_HOME)/bin/javac -source 11 -target 11 \
+		-classpath $$(ls -d $(ANDROID_SDK)/platforms/android-*/android.jar | tail -1) \
+		-d /tmp/sdl2-build \
+		$$(find OpenRA.Platforms.Android/java -name "*.java") 2>&1 | grep -v '^\(warning\|Note\)' || true
+	@$(JAVA_HOME)/bin/jar cf OpenRA.Platforms.Android/sdl2.jar -C /tmp/sdl2-build .
+	@rm -rf /tmp/sdl2-build
 	@echo "Building OpenRA Android APK..."
 	@$(DOTNET) build OpenRA.Platforms.Android/OpenRA.Platforms.Android.csproj -c ${CONFIGURATION} \
-		-p:AndroidSdkDirectory=/home/andrzej/Unity/Hub/Editor/2023.1.11f1/Editor/Data/PlaybackEngines/AndroidPlayer/SDK \
-		-p:AndroidNdkDirectory=/home/andrzej/Unity/Hub/Editor/2023.1.11f1/Editor/Data/PlaybackEngines/AndroidPlayer/NDK \
-		-p:JavaSdkDirectory=/home/andrzej/Unity/Hub/Editor/2023.1.11f1/Editor/Data/PlaybackEngines/AndroidPlayer/OpenJDK \
+		-p:AndroidSdkDirectory=$(ANDROID_SDK) \
+		-p:AndroidNdkDirectory=$(ANDROID_NDK) \
+		-p:JavaSdkDirectory=$(JAVA_HOME) \
 		-p:AcceptAndroidSDKLicenses=True
 
 
