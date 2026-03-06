@@ -33,6 +33,7 @@ namespace OpenRA.Platforms.SDL2
 			None = 0,
 			DebugMessagesCallback = 1,
 			ESReadFormatBGRA = 2,
+			ESTextureFormatBGRA = 4,
 		}
 
 		public static GLProfile Profile { get; private set; }
@@ -131,6 +132,10 @@ namespace OpenRA.Platforms.SDL2
 		public const int GL_CLAMP_TO_EDGE = 0x812F;
 		public const int GL_TEXTURE_BASE_LEVEL = 0x813C;
 		public const int GL_TEXTURE_MAX_LEVEL = 0x813D;
+		public const int GL_TEXTURE_SWIZZLE_R = 0x8E42;
+		public const int GL_TEXTURE_SWIZZLE_B = 0x8E44;
+		public const int GL_RED = 0x1903;
+		public const int GL_BLUE = 0x1905;
 
 		public const int GL_ARRAY_BUFFER = 0x8892;
 		public const int GL_ELEMENT_ARRAY_BUFFER = 0x8893;
@@ -680,13 +685,15 @@ namespace OpenRA.Platforms.SDL2
 						break;
 				}
 
-				// Core features are defined as the shared feature set of GL 3.2 and (GLES 3 + derivatives, BGRA extensions)
-				var hasBGRA = SDL.SDL_GL_ExtensionSupported("GL_EXT_texture_format_BGRA8888") == SDL.SDL_bool.SDL_TRUE;
-				var hasDerivatives = SDL.SDL_GL_ExtensionSupported("GL_OES_standard_derivatives") == SDL.SDL_bool.SDL_TRUE;
-				if (Version.Contains(" ES") && hasBGRA && hasDerivatives && major >= 3)
+				// Core features are defined as the shared feature set of GL 3.2 and (GLES 3 + derivatives)
+				// Standard derivatives are core in GLES 3.0, so the extension check is a fallback for GLES 2.x
+				var hasDerivatives = major >= 3 || SDL.SDL_GL_ExtensionSupported("GL_OES_standard_derivatives") == SDL.SDL_bool.SDL_TRUE;
+				if (Version.Contains(" ES") && hasDerivatives && major >= 3)
 				{
 					hasValidConfiguration = true;
 					Profile = GLProfile.Embedded;
+					if (SDL.SDL_GL_ExtensionSupported("GL_EXT_texture_format_BGRA8888") == SDL.SDL_bool.SDL_TRUE)
+						Features |= GLFeatures.ESTextureFormatBGRA;
 					if (SDL.SDL_GL_ExtensionSupported("GL_EXT_read_format_bgra") == SDL.SDL_bool.SDL_TRUE)
 						Features |= GLFeatures.ESReadFormatBGRA;
 				}

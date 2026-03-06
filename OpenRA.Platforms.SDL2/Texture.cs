@@ -67,14 +67,37 @@ namespace OpenRA.Platforms.SDL2
 			OpenGL.CheckGLError();
 			OpenGL.glTexParameteri(OpenGL.GL_TEXTURE_2D, OpenGL.GL_TEXTURE_MAX_LEVEL, 0);
 			OpenGL.CheckGLError();
+
+			// When GL_EXT_texture_format_BGRA8888 is unavailable (e.g. emulator/SwiftShader), data is uploaded
+			// as RGBA. Use texture swizzle to swap R and B so sampling returns the expected BGRA-ordered colours.
+			if (OpenGL.Profile == GLProfile.Embedded && !OpenGL.Features.HasFlag(OpenGL.GLFeatures.ESTextureFormatBGRA))
+			{
+				OpenGL.glTexParameteri(OpenGL.GL_TEXTURE_2D, OpenGL.GL_TEXTURE_SWIZZLE_R, OpenGL.GL_BLUE);
+				OpenGL.CheckGLError();
+				OpenGL.glTexParameteri(OpenGL.GL_TEXTURE_2D, OpenGL.GL_TEXTURE_SWIZZLE_B, OpenGL.GL_RED);
+				OpenGL.CheckGLError();
+			}
 		}
 
 		void SetData(IntPtr data, int width, int height)
 		{
 			PrepareTexture();
-			var glInternalFormat = OpenGL.Profile == GLProfile.Embedded ? OpenGL.GL_BGRA : OpenGL.GL_RGBA8;
+			int glInternalFormat, glFormat;
+			if (OpenGL.Profile == GLProfile.Embedded)
+			{
+				// Use BGRA if the extension is available; otherwise upload as RGBA and rely on texture swizzle.
+				var hasBGRA = OpenGL.Features.HasFlag(OpenGL.GLFeatures.ESTextureFormatBGRA);
+				glInternalFormat = hasBGRA ? OpenGL.GL_BGRA : OpenGL.GL_RGBA;
+				glFormat = hasBGRA ? OpenGL.GL_BGRA : OpenGL.GL_RGBA;
+			}
+			else
+			{
+				glInternalFormat = OpenGL.GL_RGBA8;
+				glFormat = OpenGL.GL_BGRA;
+			}
+
 			OpenGL.glTexImage2D(OpenGL.GL_TEXTURE_2D, 0, glInternalFormat, width, height,
-				0, OpenGL.GL_BGRA, OpenGL.GL_UNSIGNED_BYTE, data);
+				0, glFormat, OpenGL.GL_UNSIGNED_BYTE, data);
 			OpenGL.CheckGLError();
 		}
 
