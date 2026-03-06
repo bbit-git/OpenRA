@@ -176,6 +176,11 @@ namespace OpenRA.Graphics
 			}
 
 			UpdateViewportZooms();
+
+			// Initialize LastMousePos to screen center to prevent edge scrolling
+			// before any mouse/touch input is received (e.g. on Android).
+			if (LastMousePos == int2.Zero)
+				LastMousePos = new int2(Game.Renderer.Resolution.Width / 2, Game.Renderer.Resolution.Height / 2);
 		}
 
 		public void Tick()

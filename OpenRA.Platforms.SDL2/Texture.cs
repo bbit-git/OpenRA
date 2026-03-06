@@ -119,7 +119,9 @@ namespace OpenRA.Platforms.SDL2
 
 			PrepareTexture();
 
-			var glInternalFormat = OpenGL.Profile == GLProfile.Embedded ? OpenGL.GL_BGRA : OpenGL.GL_RGBA8;
+			// GLES does not support GL_BGRA as an internal format for glCopyTexImage2D on many drivers.
+			// GL_RGBA is universally supported and the driver handles framebuffer format conversion.
+			var glInternalFormat = OpenGL.Profile == GLProfile.Embedded ? OpenGL.GL_RGBA : OpenGL.GL_RGBA8;
 			OpenGL.glCopyTexImage2D(OpenGL.GL_TEXTURE_2D, 0, glInternalFormat, rect.X, rect.Y, rect.Width, rect.Height, 0);
 			OpenGL.CheckGLError();
 		}
