@@ -20,6 +20,7 @@ namespace OpenRA.Platforms.Android
 		MainLauncher = true,
 		Icon = "@mipmap/ic_launcher",
 		RoundIcon = "@mipmap/ic_launcher",
+		Theme = "@style/SplashTheme",
 		ScreenOrientation = ScreenOrientation.SensorLandscape,
 		ConfigurationChanges =
 			ConfigChanges.Orientation |
@@ -37,6 +38,10 @@ namespace OpenRA.Platforms.Android
 
 		protected override void OnCreate(Bundle savedInstanceState)
 		{
+			// Switch from the splash theme to the real fullscreen theme
+			// once the activity is ready to render.
+			SetTheme(global::Android.Resource.Style.ThemeNoTitleBarFullScreen);
+
 			internalPath = FilesDir!.AbsolutePath;
 			engineDir = System.IO.Path.Combine(internalPath, "engine");
 
