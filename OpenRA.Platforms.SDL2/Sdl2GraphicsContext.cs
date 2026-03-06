@@ -47,6 +47,15 @@ namespace OpenRA.Platforms.SDL2
 			OpenGL.CheckGLError();
 			OpenGL.glBindVertexArray(vao);
 			OpenGL.CheckGLError();
+
+			// On Android, the driver's default GL viewport may not match the actual drawable size
+			// (e.g. after fullscreen mode changes the surface). Set it explicitly.
+			if (Platform.CurrentPlatform == PlatformType.Android)
+			{
+				SDL.SDL_GL_GetDrawableSize(window.Window, out var dw, out var dh);
+				OpenGL.glViewport(0, 0, dw, dh);
+				OpenGL.CheckGLError();
+			}
 		}
 
 		public IVertexBuffer<T> CreateEmptyVertexBuffer<T>(int size) where T : struct
