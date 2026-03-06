@@ -105,20 +105,27 @@ namespace OpenRA.Platforms.SDL2
 							case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_SHOWN:
 							case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_MAXIMIZED:
 							case SDL.SDL_WindowEventID.SDL_WINDOWEVENT_RESTORED:
-								device.IsSuspended = false;
+								// On Android, don't unsuspend on window events — these
+								// fire from intermediate surface states before the
+								// fullscreen surface is ready. Only DIDENTERFOREGROUND
+								// should unsuspend.
+								if (Platform.CurrentPlatform != PlatformType.Android)
+									device.IsSuspended = false;
+
 								break;
 						}
 
 						break;
 					}
 
-					// Android app lifecycle: pause when backgrounded
-					case SDL.SDL_EventType.SDL_APP_DIDENTERBACKGROUND:
+					// Android app lifecycle: stop rendering before the surface is destroyed
+					case SDL.SDL_EventType.SDL_APP_WILLENTERBACKGROUND:
 						device.IsSuspended = true;
 						break;
 
-					case SDL.SDL_EventType.SDL_APP_WILLENTERFOREGROUND:
+					case SDL.SDL_EventType.SDL_APP_DIDENTERFOREGROUND:
 						device.IsSuspended = false;
+						device.NeedsGLContextRebind = true;
 						break;
 
 					case SDL.SDL_EventType.SDL_MOUSEBUTTONDOWN:

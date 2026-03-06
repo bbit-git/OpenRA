@@ -535,13 +535,49 @@ public class SDLActivity extends Activity implements View.OnSystemUiVisibilityCh
            return;
         }
 
+        // Check if the current surface is an intermediate (non-fullscreen) size.
+        // After a pause/resume cycle, the first surfaceChanged() may deliver a
+        // smaller surface (e.g. 2166x976 with nav bar). If we resume on that,
+        // the immersive-mode transition will destroy it — causing a black screen.
+        // Only defer resume when we detect this mismatch.
+        boolean needsImmersiveResize = false;
+        if (hasFocus && mSurface != null && mFullscreenModeActive) {
+           try {
+               android.util.DisplayMetrics dm = new android.util.DisplayMetrics();
+               getWindowManager().getDefaultDisplay().getRealMetrics(dm);
+               float sw = mSurface.mWidth;
+               float sh = mSurface.mHeight;
+               needsImmersiveResize = (sw != dm.widthPixels || sh != dm.heightPixels)
+                   && (sw != dm.heightPixels || sh != dm.widthPixels);
+           } catch (Exception ignored) {}
+
+           if (needsImmersiveResize) {
+               mSurface.mIsSurfaceReady = false;
+           }
+        }
+
         mHasFocus = hasFocus;
         if (hasFocus) {
            mNextNativeState = NativeState.RESUMED;
            SDLActivity.getMotionListener().reclaimRelativeMouseModeIfNeeded();
 
-           SDLActivity.handleNativeState();
            nativeFocusChanged(true);
+
+           if (needsImmersiveResize) {
+               // Wait for the fullscreen surfaceChanged() to set mIsSurfaceReady=true
+               // and call handleNativeState(). Safety net in case it never arrives.
+               getWindow().getDecorView().postDelayed(new Runnable() {
+                   @Override
+                   public void run() {
+                       if (mSurface != null && !mSurface.mIsSurfaceReady) {
+                           mSurface.mIsSurfaceReady = true;
+                       }
+                       SDLActivity.handleNativeState();
+                   }
+               }, 1000);
+           } else {
+               SDLActivity.handleNativeState();
+           }
 
         } else {
            nativeFocusChanged(false);

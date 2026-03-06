@@ -99,6 +99,7 @@ namespace OpenRA.Platforms.SDL2
 		public bool HasInputFocus { get; internal set; }
 
 		public bool IsSuspended { get; internal set; }
+		internal volatile bool NeedsGLContextRebind;
 
 		public GLProfile GLProfile
 		{
@@ -170,20 +171,23 @@ namespace OpenRA.Platforms.SDL2
 
 				profile = supportedProfiles.Contains(requestProfile) ? requestProfile : supportedProfiles[0];
 
+				// Android hints must be set BEFORE SDL_Init because SDL reads them
+				// during video device creation to select the event pump function.
+				if (Platform.CurrentPlatform == PlatformType.Android)
+				{
+					SDL.SDL_SetHint("SDL_TOUCH_MOUSE_EVENTS", "0");
+					SDL.SDL_SetHint("SDL_MOUSE_TOUCH_EVENTS", "0");
+
+					// Use non-blocking pause: game loop keeps running but skips rendering
+					// while IsSuspended. Avoids stale EGL surface on resume.
+					SDL.SDL_SetHint("SDL_ANDROID_BLOCK_ON_PAUSE", "0");
+					SDL.SDL_SetHint("SDL_ANDROID_BLOCK_ON_PAUSE_PAUSEAUDIO", "0");
+				}
+
 				// Note: This must be called after the CanCreateGLWindow checks above,
 				// which needs to create and destroy its own SDL contexts as a workaround for specific buggy drivers
 				if (SDL.SDL_Init(SDL.SDL_INIT_VIDEO) != 0)
 					Log.Write("graphics", $"SDL initialisation failed: {SDL.SDL_GetError()}");
-
-				if (Platform.CurrentPlatform == PlatformType.Android)
-				{
-					SDL.SDL_SetHint("SDL_HINT_TOUCH_MOUSE_EVENTS", "0");
-					SDL.SDL_SetHint("SDL_HINT_MOUSE_TOUCH_EVENTS", "0");
-
-					// Block the SDL event loop while the app is paused to preserve the GL context.
-					SDL.SDL_SetHint("SDL_HINT_ANDROID_BLOCK_ON_PAUSE", "1");
-					SDL.SDL_SetHint("SDL_HINT_ANDROID_BLOCK_ON_PAUSE_PAUSEAUDIO", "1");
-				}
 
 				SetSDLAttributes(profile);
 				Console.WriteLine($"Using SDL {GetSDLVersion()} with OpenGL ({profile}) renderer");
