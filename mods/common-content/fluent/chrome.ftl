@@ -10,7 +10,6 @@ button-package-download-panel-retry = Retry
 label-content-prompt-panel-title = Install Content
 button-content-prompt-panel-advanced = Advanced Install
 button-content-prompt-panel-quick = Quick Install
-checkbox-ownership-confirmation = I confirm I own a legitimate copy of this game
 
 ## DownloadPackageLogic
 label-downloading = Downloading { $title }
