@@ -53,4 +53,5 @@ update.log
 
 # Android native lib build artifacts
 OpenRA.Platforms.Android/libs/
+OpenRA.Platforms.Android/sdl2.jar
 .build-cache/
