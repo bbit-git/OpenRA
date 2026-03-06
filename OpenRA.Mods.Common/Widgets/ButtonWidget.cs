@@ -203,7 +203,7 @@ namespace OpenRA.Mods.Common.Widgets
 				}
 			}
 			else if (mi.Event == MouseInputEvent.Move && HasMouseFocus)
-				Depressed = RenderBounds.Contains(mi.Location);
+				Depressed = EventBounds.Contains(mi.Location);
 
 			return Depressed;
 		}

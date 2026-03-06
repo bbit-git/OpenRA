@@ -179,6 +179,10 @@ namespace OpenRA.Platforms.SDL2
 				{
 					SDL.SDL_SetHint("SDL_HINT_TOUCH_MOUSE_EVENTS", "0");
 					SDL.SDL_SetHint("SDL_HINT_MOUSE_TOUCH_EVENTS", "0");
+
+					// Block the SDL event loop while the app is paused to preserve the GL context.
+					SDL.SDL_SetHint("SDL_HINT_ANDROID_BLOCK_ON_PAUSE", "1");
+					SDL.SDL_SetHint("SDL_HINT_ANDROID_BLOCK_ON_PAUSE_PAUSEAUDIO", "1");
 				}
 
 				SetSDLAttributes(profile);

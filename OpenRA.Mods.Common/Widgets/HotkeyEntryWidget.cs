@@ -68,7 +68,7 @@ namespace OpenRA.Mods.Common.Widgets
 				return false;
 
 			// Attempt to take keyboard focus
-			if (!RenderBounds.Contains(mi.Location) || !TakeKeyboardFocus())
+			if (!EventBounds.Contains(mi.Location) || !TakeKeyboardFocus())
 				return false;
 
 			blinkCycle = 15;

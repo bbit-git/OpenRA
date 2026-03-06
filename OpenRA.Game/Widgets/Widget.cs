@@ -328,7 +328,29 @@ namespace OpenRA.Widgets
 			args.Remove("widget");
 		}
 
-		public virtual Rectangle EventBounds => RenderBounds;
+		const int MinTouchTargetSize = 48;
+
+		public virtual Rectangle EventBounds
+		{
+			get
+			{
+				var rb = RenderBounds;
+				if (Platform.CurrentPlatform != PlatformType.Android)
+					return rb;
+
+				// Expand small widgets to meet minimum touch target size
+				var expandW = Math.Max(0, MinTouchTargetSize - rb.Width);
+				var expandH = Math.Max(0, MinTouchTargetSize - rb.Height);
+				if (expandW == 0 && expandH == 0)
+					return rb;
+
+				return new Rectangle(
+					rb.X - expandW / 2,
+					rb.Y - expandH / 2,
+					rb.Width + expandW,
+					rb.Height + expandH);
+			}
+		}
 
 		public virtual bool EventBoundsContains(int2 location)
 		{
