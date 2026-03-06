@@ -438,8 +438,16 @@ namespace OpenRA
 			var defaultPlatform = Platform.CurrentPlatform == PlatformType.Android ? "SDL2" : "Default";
 
 			// On Android, only the SDL2 platform is available.
+			// Force touch-friendly input settings: Classic mode maps Left click to contextual
+			// orders, alternate scroll button uses Middle for camera pan, and Standard scroll
+			// gives direct-manipulation panning with the gesture recognizer.
 			if (Platform.CurrentPlatform == PlatformType.Android)
+			{
 				Settings.Game.Platform = "SDL2";
+				Settings.Game.MouseControlStyle = MouseControlStyle.Classic;
+				Settings.Game.UseAlternateScrollButton = true;
+				Settings.Game.MouseScroll = MouseScrollType.Standard;
+			}
 
 			var platforms = new[] { Settings.Game.Platform, defaultPlatform, null };
 			foreach (var p in platforms)
