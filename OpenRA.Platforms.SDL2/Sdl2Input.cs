@@ -19,6 +19,7 @@ namespace OpenRA.Platforms.SDL2
 	sealed class Sdl2Input
 	{
 		MouseButton lastButtonBits = MouseButton.None;
+		readonly TouchGestureRecognizer touchRecognizer = new();
 
 		public static string GetClipboardText() { return SDL.SDL_GetClipboardText(); }
 		public static bool SetClipboardText(string text) { return SDL.SDL_SetClipboardText(text) == 0; }
@@ -261,39 +262,49 @@ namespace OpenRA.Platforms.SDL2
 					case SDL.SDL_EventType.SDL_FINGERUP:
 					case SDL.SDL_EventType.SDL_FINGERMOTION:
 					{
-						// SDL finger coordinates are normalized (0.0 to 1.0)
-						var x = (int)(e.tfinger.x * device.SurfaceSize.Width);
-						var y = (int)(e.tfinger.y * device.SurfaceSize.Height);
-						var pos = EventPosition(device, x, y);
-
-						if (e.type == SDL.SDL_EventType.SDL_FINGERDOWN)
+						if (Platform.CurrentPlatform == PlatformType.Android)
 						{
-							lastButtonBits |= MouseButton.Left;
-							inputHandler.OnMouseInput(new MouseInput(
-								MouseInputEvent.Down, MouseButton.Left, pos, int2.Zero, mods,
-								MultiTapDetection.DetectFromMouse((byte)SDL.SDL_BUTTON_LEFT, pos)));
+							touchRecognizer.HandleFingerEvent(e, device, inputHandler, mods);
 						}
-						else if (e.type == SDL.SDL_EventType.SDL_FINGERUP)
+						else
 						{
-							lastButtonBits &= ~MouseButton.Left;
-							inputHandler.OnMouseInput(new MouseInput(
-								MouseInputEvent.Up, MouseButton.Left, pos, int2.Zero, mods,
-								MultiTapDetection.InfoFromMouse((byte)SDL.SDL_BUTTON_LEFT)));
-						}
-						else if (e.type == SDL.SDL_EventType.SDL_FINGERMOTION)
-						{
-							var dx = (int)(e.tfinger.dx * device.SurfaceSize.Width);
-							var dy = (int)(e.tfinger.dy * device.SurfaceSize.Height);
-							var delta = EventPosition(device, dx, dy);
+							// SDL finger coordinates are normalized (0.0 to 1.0)
+							var x = (int)(e.tfinger.x * device.SurfaceSize.Width);
+							var y = (int)(e.tfinger.y * device.SurfaceSize.Height);
+							var pos = EventPosition(device, x, y);
 
-							pendingMotion = new MouseInput(
-								MouseInputEvent.Move, lastButtonBits, pos, delta, mods, 0);
+							if (e.type == SDL.SDL_EventType.SDL_FINGERDOWN)
+							{
+								lastButtonBits |= MouseButton.Left;
+								inputHandler.OnMouseInput(new MouseInput(
+									MouseInputEvent.Down, MouseButton.Left, pos, int2.Zero, mods,
+									MultiTapDetection.DetectFromMouse((byte)SDL.SDL_BUTTON_LEFT, pos)));
+							}
+							else if (e.type == SDL.SDL_EventType.SDL_FINGERUP)
+							{
+								lastButtonBits &= ~MouseButton.Left;
+								inputHandler.OnMouseInput(new MouseInput(
+									MouseInputEvent.Up, MouseButton.Left, pos, int2.Zero, mods,
+									MultiTapDetection.InfoFromMouse((byte)SDL.SDL_BUTTON_LEFT)));
+							}
+							else if (e.type == SDL.SDL_EventType.SDL_FINGERMOTION)
+							{
+								var dx = (int)(e.tfinger.dx * device.SurfaceSize.Width);
+								var dy = (int)(e.tfinger.dy * device.SurfaceSize.Height);
+								var delta = EventPosition(device, dx, dy);
+
+								pendingMotion = new MouseInput(
+									MouseInputEvent.Move, lastButtonBits, pos, delta, mods, 0);
+							}
 						}
 
 						break;
 					}
 				}
 			}
+
+			if (Platform.CurrentPlatform == PlatformType.Android)
+				touchRecognizer.ProcessTimers(device, inputHandler, mods);
 
 			if (pendingMotion != null)
 				inputHandler.OnMouseInput(pendingMotion.Value);

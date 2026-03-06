@@ -20,6 +20,8 @@ namespace OpenRA.Mods.Common.Orders
 {
 	public class UnitOrderGenerator : IOrderGenerator
 	{
+		static readonly int TouchRadius = Platform.CurrentPlatform == PlatformType.Android ? 24 : 0;
+
 		readonly string worldSelectCursor = ChromeMetrics.Get<string>("WorldSelectCursor");
 		readonly string worldDefaultCursor = ChromeMetrics.Get<string>("WorldDefaultCursor");
 		readonly GameSettings gameSettings;
@@ -35,7 +37,11 @@ namespace OpenRA.Mods.Common.Orders
 
 		protected static Target TargetForInput(World world, CPos cell, int2 worldPixel, MouseInput mi)
 		{
-			var actor = world.ScreenMap.ActorsAtMouse(mi)
+			var candidates = TouchRadius > 0
+				? world.ScreenMap.ActorsNearMouse(worldPixel, TouchRadius)
+				: world.ScreenMap.ActorsAtMouse(mi);
+
+			var actor = candidates
 				.Where(a => !a.Actor.IsDead && a.Actor.Info.HasTraitInfo<ITargetableInfo>() && !world.FogObscures(a.Actor))
 				.WithHighestSelectionPriority(worldPixel, mi.Modifiers);
 
@@ -119,7 +125,11 @@ namespace OpenRA.Mods.Common.Orders
 		// Used for classic mouse orders, determines whether or not action at xy is move or select
 		public virtual bool InputOverridesSelection(World world, int2 xy, MouseInput mi)
 		{
-			var actor = world.ScreenMap.ActorsAtMouse(xy)
+			var candidates = TouchRadius > 0
+				? world.ScreenMap.ActorsNearMouse(xy, TouchRadius)
+				: world.ScreenMap.ActorsAtMouse(xy);
+
+			var actor = candidates
 				.Where(a =>
 					!a.Actor.IsDead &&
 					a.Actor.Info.HasTraitInfo<ISelectableInfo>() &&

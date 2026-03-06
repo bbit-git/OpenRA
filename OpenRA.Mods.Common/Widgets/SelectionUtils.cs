@@ -20,6 +20,8 @@ namespace OpenRA.Mods.Common.Widgets
 {
 	public static class SelectionUtils
 	{
+		static readonly int TouchRadius = Platform.CurrentPlatform == PlatformType.Android ? 24 : 0;
+
 		public static IEnumerable<Actor> SelectActorsOnScreen(
 			World world, WorldRenderer wr, IEnumerable<string> selectionClasses, IEnumerable<Player> players)
 		{
@@ -50,7 +52,11 @@ namespace OpenRA.Mods.Common.Widgets
 
 		public static IEnumerable<Actor> SelectHighestPriorityActorAtPoint(World world, int2 a, Modifiers modifiers)
 		{
-			var selected = world.ScreenMap.ActorsAtMouse(a)
+			var candidates = TouchRadius > 0
+				? world.ScreenMap.ActorsNearMouse(a, TouchRadius)
+				: world.ScreenMap.ActorsAtMouse(a);
+
+			var selected = candidates
 				.Where(x => x.Actor.Info.HasTraitInfo<ISelectableInfo>() && (x.Actor.Owner.IsAlliedWith(world.RenderPlayer) || !world.FogObscures(x.Actor)))
 				.WithHighestSelectionPriority(a, modifiers);
 

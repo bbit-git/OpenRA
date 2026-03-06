@@ -172,6 +172,13 @@ namespace OpenRA.Traits
 			return ActorsAtMouse(worldRenderer.Viewport.ViewToWorldPx(mi.Location));
 		}
 
+		public IEnumerable<ActorBoundsPair> ActorsNearMouse(int2 worldPx, int radius)
+		{
+			return ActorsInMouseBox(
+				new int2(worldPx.X - radius, worldPx.Y - radius),
+				new int2(worldPx.X + radius, worldPx.Y + radius));
+		}
+
 		static Rectangle RectWithCorners(int2 a, int2 b)
 		{
 			return Rectangle.FromLTRB(Math.Min(a.X, b.X), Math.Min(a.Y, b.Y), Math.Max(a.X, b.X), Math.Max(a.Y, b.Y));
