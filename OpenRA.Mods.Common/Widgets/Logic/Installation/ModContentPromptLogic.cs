@@ -56,28 +56,9 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 				});
 			};
 
-			// On Android, hide source detection and require ownership confirmation
-			if (Platform.CurrentPlatform == PlatformType.Android)
-				advancedButton.IsVisible = () => false;
-
-			var ownershipCheckbox = panel.GetOrNull<CheckboxWidget>("OWNERSHIP_CHECKBOX");
-			var ownershipConfirmed = true;
-			if (ownershipCheckbox != null && Platform.CurrentPlatform == PlatformType.Android)
-			{
-				ownershipConfirmed = false;
-				ownershipCheckbox.Bounds.Y += headerHeight;
-				ownershipCheckbox.IsChecked = () => ownershipConfirmed;
-				ownershipCheckbox.OnClick = () => ownershipConfirmed = !ownershipConfirmed;
-			}
-			else if (ownershipCheckbox != null)
-			{
-				ownershipCheckbox.IsVisible = () => false;
-			}
-
 			var quickButton = panel.Get<ButtonWidget>("QUICK_BUTTON");
 			quickButton.IsVisible = () => !string.IsNullOrEmpty(content.QuickDownload);
 			quickButton.Bounds.Y += headerHeight;
-			quickButton.IsDisabled = () => !ownershipConfirmed;
 			quickButton.OnClick = () =>
 			{
 				var downloadYaml = MiniYaml.Load(modData.DefaultFileSystem, content.Downloads, null);
