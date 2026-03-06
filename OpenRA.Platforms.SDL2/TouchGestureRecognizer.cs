@@ -249,6 +249,10 @@ namespace OpenRA.Platforms.SDL2
 		{
 			prevMidpoint = Midpoint(finger1Pos, finger2Pos);
 			prevDistance = Distance(finger1Pos, finger2Pos);
+
+			// Emit a Move first to update Viewport.LastMousePos to the midpoint,
+			// preventing a camera jump on the first pan frame.
+			Emit(inputHandler, MouseInputEvent.Move, MouseButton.None, prevMidpoint, int2.Zero, mods);
 			Emit(inputHandler, MouseInputEvent.Down, MouseButton.Middle, prevMidpoint, int2.Zero, mods);
 			state = State.TwoFingerActive;
 		}
