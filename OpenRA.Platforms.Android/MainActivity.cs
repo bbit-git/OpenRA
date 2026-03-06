@@ -72,6 +72,16 @@ namespace OpenRA.Platforms.Android
 			{
 				global::Android.Util.Log.Error("OpenRA", "Fatal error in runGameLoop: " + ex.ToString());
 			}
+			finally
+			{
+				// Game loop has ended — finish the activity so the process exits cleanly.
+				RunOnUiThread(() => FinishAndRemoveTask());
+
+				// FinishAndRemoveTask only finishes the Activity; the process stays alive.
+				// Force-exit so stale state doesn't linger.
+				Java.Lang.Thread.Sleep(500);
+				Java.Lang.JavaSystem.Exit(0);
+			}
 		}
 
 		/// <summary>

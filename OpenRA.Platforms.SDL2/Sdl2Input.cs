@@ -111,6 +111,15 @@ namespace OpenRA.Platforms.SDL2
 						break;
 					}
 
+					// Android app lifecycle: pause when backgrounded
+					case SDL.SDL_EventType.SDL_APP_DIDENTERBACKGROUND:
+						device.IsSuspended = true;
+						break;
+
+					case SDL.SDL_EventType.SDL_APP_WILLENTERFOREGROUND:
+						device.IsSuspended = false;
+						break;
+
 					case SDL.SDL_EventType.SDL_MOUSEBUTTONDOWN:
 					case SDL.SDL_EventType.SDL_MOUSEBUTTONUP:
 					{

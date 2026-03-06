@@ -294,6 +294,16 @@ namespace OpenRA
 			MusicPlaying = false;
 		}
 
+		public void PauseAll()
+		{
+			soundEngine.SetAllSoundsPaused(true);
+		}
+
+		public void ResumeAll()
+		{
+			soundEngine.SetAllSoundsPaused(false);
+		}
+
 		public void PauseMusic()
 		{
 			if (music == null)
