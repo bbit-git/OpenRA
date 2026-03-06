@@ -50,3 +50,7 @@ update.log
 
 # IntelliJ files
 .idea
+
+# Android native lib build artifacts
+OpenRA.Platforms.Android/libs/
+.build-cache/
