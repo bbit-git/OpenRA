@@ -107,8 +107,16 @@ android:
 		$$(find OpenRA.Platforms.Android/java -name "*.java") 2>&1 | grep -v '^\(warning\|Note\)' || true
 	@$(JAVA_HOME)/bin/jar cf OpenRA.Platforms.Android/sdl2.jar -C /tmp/sdl2-build .
 	@rm -rf /tmp/sdl2-build
-	@echo "Building OpenRA Android APK..."
+	@echo "Building OpenRA Android APK (arm64)..."
 	@$(DOTNET) build OpenRA.Platforms.Android/OpenRA.Platforms.Android.csproj -c ${CONFIGURATION} \
+		-r android-arm64 \
+		-p:AndroidSdkDirectory=$(ANDROID_SDK) \
+		-p:AndroidNdkDirectory=$(ANDROID_NDK) \
+		-p:JavaSdkDirectory=$(JAVA_HOME) \
+		-p:AcceptAndroidSDKLicenses=True
+	@echo "Building OpenRA Android APK (x86_64)..."
+	@$(DOTNET) build OpenRA.Platforms.Android/OpenRA.Platforms.Android.csproj -c ${CONFIGURATION} \
+		-r android-x64 \
 		-p:AndroidSdkDirectory=$(ANDROID_SDK) \
 		-p:AndroidNdkDirectory=$(ANDROID_NDK) \
 		-p:JavaSdkDirectory=$(JAVA_HOME) \

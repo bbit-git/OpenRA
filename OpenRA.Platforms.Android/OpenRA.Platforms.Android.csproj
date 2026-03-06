@@ -14,8 +14,7 @@
 		<PublishTrimmed>false</PublishTrimmed>
 		<RunAOTCompilation>false</RunAOTCompilation>
 		<AndroidLinkMode>None</AndroidLinkMode>
-		<!-- Target multiple architectures -->
-		<RuntimeIdentifiers>android-arm64;android-x64</RuntimeIdentifiers>
+		<!-- Architecture is specified per-build via -r flag (produces separate APKs) -->
 		<!-- Override global OutputPath to avoid metadata conflicts -->
 		<AppendTargetFrameworkToOutputPath>true</AppendTargetFrameworkToOutputPath>
 		<OutputPath>obj/bin</OutputPath>
