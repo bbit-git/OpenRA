@@ -846,6 +846,7 @@ namespace OpenRA
 			var nextRender = RunTime;
 			var forcedNextRender = RunTime;
 			var renderBeforeNextTick = false;
+			var wasSuspended = false;
 
 			while (state == RunStatus.Running)
 			{
@@ -870,6 +871,25 @@ namespace OpenRA
 					logicInterval = 1;
 					renderInterval = 200;
 				}
+
+				var isSuspended = Renderer.WindowIsSuspended;
+
+				// Handle suspend/resume transitions (e.g. Android device lock)
+				if (isSuspended && !wasSuspended)
+				{
+					Sound?.PauseAll();
+				}
+				else if (!isSuspended && wasSuspended)
+				{
+					Sound?.ResumeAll();
+
+					// Reset timing so we don't try to catch up on missed ticks
+					nextLogic = RunTime;
+					nextRender = RunTime;
+					forcedNextRender = RunTime;
+				}
+
+				wasSuspended = isSuspended;
 
 				var now = RunTime;
 

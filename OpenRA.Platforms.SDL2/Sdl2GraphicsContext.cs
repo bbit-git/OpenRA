@@ -150,6 +150,13 @@ namespace OpenRA.Platforms.SDL2
 		public void Present()
 		{
 			VerifyThreadAffinity();
+
+			// On Android, skip the swap if the window is suspended.
+			// A Present() from the last frame before suspend may still be
+			// in the render thread's message queue after the surface is destroyed.
+			if (window.IsSuspended)
+				return;
+
 			SDL.SDL_GL_SwapWindow(window.Window);
 		}
 
@@ -182,6 +189,25 @@ namespace OpenRA.Platforms.SDL2
 		public void Clear()
 		{
 			VerifyThreadAffinity();
+
+			// On Android, the EGL surface is destroyed and recreated during
+			// pause/resume. SDL's built-in context backup/restore runs on the
+			// game loop thread, but the GL context lives on THIS render thread.
+			// Rebind our original context to the (new) EGL surface here.
+			if (window.NeedsGLContextRebind)
+			{
+				window.NeedsGLContextRebind = false;
+
+				// Unbind from the old (destroyed) EGL surface, then rebind
+				// to the new one. Without the explicit unbind, some drivers
+				// leave the context in a bad state.
+				SDL.SDL_GL_MakeCurrent(window.Window, IntPtr.Zero);
+				SDL.SDL_GL_MakeCurrent(window.Window, context);
+
+				SDL.SDL_GL_GetDrawableSize(window.Window, out var dw, out var dh);
+				OpenGL.glViewport(0, 0, dw, dh);
+			}
+
 			OpenGL.glClearColor(0, 0, 0, 1);
 			OpenGL.CheckGLError();
 			OpenGL.glClear(OpenGL.GL_COLOR_BUFFER_BIT | OpenGL.GL_DEPTH_BUFFER_BIT);
