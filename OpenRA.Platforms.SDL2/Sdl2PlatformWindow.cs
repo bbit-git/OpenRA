@@ -381,6 +381,17 @@ namespace OpenRA.Platforms.SDL2
 
 			Context.SetVSyncEnabled(Game.Settings.Graphics.VSync);
 
+			// On Android, re-query the drawable size now that the GL context exists.
+			// The context creation may finalize the surface dimensions.
+			if (Platform.CurrentPlatform == PlatformType.Android)
+			{
+				SDL.SDL_GL_GetDrawableSize(Window, out var dw, out var dh);
+				Console.WriteLine($"Android GL drawable: {dw}x{dh} (was surface {surfaceSize.Width}x{surfaceSize.Height})");
+				surfaceSize = new Size(dw, dh);
+				windowSize = new Size((int)(surfaceSize.Width / windowScale), (int)(surfaceSize.Height / windowScale));
+				Console.WriteLine($"Android final: surface={surfaceSize.Width}x{surfaceSize.Height} window={windowSize.Width}x{windowSize.Height} scale={windowScale:F2}");
+			}
+
 			SDL.SDL_SetModState(SDL.SDL_Keymod.KMOD_NONE);
 			input = new Sdl2Input();
 		}
