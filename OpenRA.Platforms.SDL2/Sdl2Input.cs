@@ -124,9 +124,9 @@ namespace OpenRA.Platforms.SDL2
 					case SDL.SDL_EventType.SDL_MOUSEBUTTONDOWN:
 					case SDL.SDL_EventType.SDL_MOUSEBUTTONUP:
 					{
-						// On Android all input is touch; skip synthetic mouse events from SDL
-						// (the gesture recognizer handles finger events exclusively).
-						if (Platform.CurrentPlatform == PlatformType.Android)
+						// On Android, skip mouse events synthesized from touch (handled by gesture recognizer).
+						// Real mouse events (Bluetooth/USB) are still processed normally.
+						if (Platform.CurrentPlatform == PlatformType.Android && e.button.which == SDL.SDL_TOUCH_MOUSEID)
 							break;
 						// Mouse 1, Mouse 2 and Mouse 3 are handled as mouse inputs
 						// Mouse 4 and Mouse 5 are treated as (pseudo) keyboard inputs
@@ -194,8 +194,8 @@ namespace OpenRA.Platforms.SDL2
 
 					case SDL.SDL_EventType.SDL_MOUSEMOTION:
 					{
-						// On Android all input is touch; skip synthetic mouse events from SDL.
-						if (Platform.CurrentPlatform == PlatformType.Android)
+						// On Android, skip mouse motion synthesized from touch.
+						if (Platform.CurrentPlatform == PlatformType.Android && e.motion.which == SDL.SDL_TOUCH_MOUSEID)
 							break;
 
 						var mousePos = new int2(e.motion.x, e.motion.y);
