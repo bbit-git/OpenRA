@@ -444,9 +444,7 @@ namespace OpenRA
 			foreach (var mod in ExternalMods)
 				Console.WriteLine($"\t{mod.Key} ({mod.Value.Version})");
 
-			var defaultPlatform = Platform.CurrentPlatform == PlatformType.Android ? "SDL2" : "Default";
-
-			// On Android, only the SDL2 platform is available.
+			var defaultPlatform = "SDL2";
 			// Force touch-friendly input settings: Classic mode maps Left click to contextual
 			// orders, alternate scroll button uses Middle for camera pan, and Standard scroll
 			// gives direct-manipulation panning with the gesture recognizer.
