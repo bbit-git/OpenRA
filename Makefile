@@ -52,6 +52,7 @@ RM_F = $(RM) -f
 RM_RF = $(RM) -rf
 
 CONFIGURATION ?= Release
+OUTPUTDIR ?= dist
 JAVA_HOME ?= /usr/lib/jvm/java-17-openjdk-amd64
 ANDROID_SDK ?= $(HOME)/Android/Sdk
 ANDROID_NDK ?= $(HOME)/Android/Ndk
@@ -95,50 +96,9 @@ endif
 	@./fetch-geoip.sh
 
 android:
-	@if [ ! -f OpenRA.Platforms.Android/libs/armeabi-v7a/libSDL2.so ] || [ ! -f OpenRA.Platforms.Android/libs/arm64-v8a/libSDL2.so ]; then \
-		echo "Native SDL2 libraries not found. Run ./build-android-libs.sh first."; \
-		exit 1; \
-	fi
-	@echo "Recompiling sdl2.jar from Java sources..."
-	@rm -rf /tmp/sdl2-build && mkdir -p /tmp/sdl2-build
-	@$(JAVA_HOME)/bin/javac -source 11 -target 11 \
-		-classpath $$(ls -d $(ANDROID_SDK)/platforms/android-*/android.jar | tail -1) \
-		-d /tmp/sdl2-build \
-		$$(find OpenRA.Platforms.Android/java -name "*.java") 2>&1 | grep -v '^\(warning\|Note\)' || true
-	@$(JAVA_HOME)/bin/jar cf OpenRA.Platforms.Android/sdl2.jar -C /tmp/sdl2-build .
-	@rm -rf /tmp/sdl2-build
-	@echo "Building OpenRA Android bundle (armeabi-v7a)..."
-	@$(DOTNET) build OpenRA.Platforms.Android/OpenRA.Platforms.Android.csproj -c ${CONFIGURATION} \
-		-r android-arm \
-		-p:AndroidBuild=true \
-		-p:AndroidSdkDirectory=$(ANDROID_SDK) \
-		-p:AndroidNdkDirectory=$(ANDROID_NDK) \
-		-p:JavaSdkDirectory=$(JAVA_HOME) \
-		-p:AcceptAndroidSDKLicenses=True
-	@echo "Building OpenRA Android bundle (arm64)..."
-	@$(DOTNET) build OpenRA.Platforms.Android/OpenRA.Platforms.Android.csproj -c ${CONFIGURATION} \
-		-r android-arm64 \
-		-p:AndroidBuild=true \
-		-p:AndroidSdkDirectory=$(ANDROID_SDK) \
-		-p:AndroidNdkDirectory=$(ANDROID_NDK) \
-		-p:JavaSdkDirectory=$(JAVA_HOME) \
-		-p:AcceptAndroidSDKLicenses=True
-	@echo "Building OpenRA Android bundle (x86_64)..."
-	@$(DOTNET) build OpenRA.Platforms.Android/OpenRA.Platforms.Android.csproj -c ${CONFIGURATION} \
-		-r android-x64 \
-		-p:AndroidBuild=true \
-		-p:AndroidSdkDirectory=$(ANDROID_SDK) \
-		-p:AndroidNdkDirectory=$(ANDROID_NDK) \
-		-p:JavaSdkDirectory=$(JAVA_HOME) \
-		-p:AcceptAndroidSDKLicenses=True
-#	@echo "Building OpenRA Android AAB (x86_64)..."
-#	@$(DOTNET) build OpenRA.Platforms.Android/OpenRA.Platforms.Android.csproj -c ${CONFIGURATION} \
-#		-r android-x64 \
-#		-p:AndroidPackageFormat=aab \
-#		-p:AndroidSdkDirectory=$(ANDROID_SDK) \
-#		-p:AndroidNdkDirectory=$(ANDROID_NDK) \
-#		-p:JavaSdkDirectory=$(JAVA_HOME) \
-#		-p:AcceptAndroidSDKLicenses=True
+	@ANDROID_SDK=$(ANDROID_SDK) ANDROID_NDK=$(ANDROID_NDK) JAVA_HOME=$(JAVA_HOME) \
+		CONFIGURATION=$(CONFIGURATION) \
+		packaging/android/buildpackage.sh $(OUTPUTDIR)
 
 
 # Deleting the intermediate / output directories ensures the build directory is actually clean
@@ -219,6 +179,9 @@ help:
 	@echo 'to compile using system libraries for native dependencies, run:'
 	@echo '  make TARGETPLATFORM=unix-generic'
 	@echo
+	@echo 'to build the Android APK (or AAB), run:'
+	@echo '  make android'
+	@echo
 	@echo 'to check the official mods for erroneous yaml files, run:'
 	@echo '  make [TREAT_WARNINGS_AS_ERRORS=false] test'
 	@echo
@@ -247,4 +210,4 @@ help:
 
 .SUFFIXES:
 
-.PHONY: all clean check check-scripts test version install install-linux-shortcuts install-linux-appdata install-man help
+.PHONY: all android clean check check-scripts test version install install-linux-shortcuts install-linux-appdata install-man help
