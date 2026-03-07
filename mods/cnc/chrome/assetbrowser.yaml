@@ -3,7 +3,7 @@ Container@ASSETBROWSER_PANEL:
 	X: (WINDOW_WIDTH - WIDTH) / 2
 	Y: (WINDOW_HEIGHT - HEIGHT) / 2
 	Width: 900
-	Height: 540
+	Height: 400
 	Children:
 		LogicTicker@ANIMATION_TICKER:
 		Label@ASSETBROWSER_TITLE:
