@@ -1,5 +1,5 @@
 #!/bin/bash
-# Cross-compile SDL2, FreeType, and OpenAL Soft for Android (arm64-v8a + x86_64)
+# Cross-compile SDL2, FreeType, and OpenAL Soft for Android
 # Requires: cmake, ninja-build, wget/curl
 # Usage: ANDROID_NDK=/path/to/ndk ./build-android-libs.sh
 
@@ -29,7 +29,7 @@ LUA_DIR="lua-${LUA_VERSION}"
 
 ANDROID_NDK="${ANDROID_NDK:-${ANDROID_NDK_HOME}}"
 ANDROID_API=21
-ABIS="arm64-v8a x86_64"
+ABIS="armeabi-v7a arm64-v8a x86_64"
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 CACHE_DIR="${SCRIPT_DIR}/.build-cache"
@@ -208,6 +208,7 @@ for ABI in ${ABIS}; do
   echo "Building Lua ${LUA_VERSION} for ${ABI}..."
 
   case "${ABI}" in
+    armeabi-v7a) LUA_TARGET=armv7a-linux-androideabi ;;
     arm64-v8a) LUA_TARGET=aarch64-linux-android ;;
     x86_64)    LUA_TARGET=x86_64-linux-android ;;
   esac
