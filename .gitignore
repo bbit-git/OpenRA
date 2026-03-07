@@ -55,3 +55,7 @@ update.log
 OpenRA.Platforms.Android/libs/
 OpenRA.Platforms.Android/sdl2.jar
 .build-cache/
+
+# Android release signing — never commit credentials
+OpenRA.Platforms.Android/signing.properties
+*.keystore

@@ -9,12 +9,18 @@
 		<!-- Android-specific -->
 		<AndroidApplication>true</AndroidApplication>
 		<AndroidGenerateApplicationPackage>true</AndroidGenerateApplicationPackage>
-		<AndroidPackageFormat>bundle</AndroidPackageFormat>
+		<!-- Default to fat APK for sideloading; pass -p:AndroidPackageFormat=aab for Play Store -->
+		<AndroidPackageFormat Condition="'$(AndroidPackageFormat)'==''">apk</AndroidPackageFormat>
+		<!-- All ABIs in one build; no -r flag needed -->
+		<AndroidSupportedAbis>armeabi-v7a;arm64-v8a;x86_64</AndroidSupportedAbis>
+		<!-- Version wired to VERSION file; override AndroidVersionCode with BUILD_NUMBER in CI -->
+		<AndroidVersionName Condition="'$(AndroidVersionName)'==''">$([System.IO.File]::ReadAllText('../VERSION').Trim().Split('-')[0])</AndroidVersionName>
+		<AndroidVersionCode Condition="'$(AndroidVersionCode)'=='' AND '$(BUILD_NUMBER)'!=''">$(BUILD_NUMBER)</AndroidVersionCode>
+		<AndroidVersionCode Condition="'$(AndroidVersionCode)'==''">$([System.DateTime]::Now.ToString('yyMMddHH'))</AndroidVersionCode>
 		<!-- Stability fixes for Mono on Android -->
 		<PublishTrimmed>false</PublishTrimmed>
 		<RunAOTCompilation>false</RunAOTCompilation>
 		<AndroidLinkMode>None</AndroidLinkMode>
-		<!-- Architecture is specified per-build via -r flag (produces separate APKs) -->
 		<!-- Override global OutputPath to avoid metadata conflicts -->
 		<AppendTargetFrameworkToOutputPath>true</AppendTargetFrameworkToOutputPath>
 		<OutputPath>obj/bin</OutputPath>
