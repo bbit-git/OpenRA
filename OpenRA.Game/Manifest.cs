@@ -55,7 +55,7 @@ namespace OpenRA
 		public readonly ModMetadata Metadata;
 		public readonly ImmutableArray<string>
 			Rules, ServerTraits,
-			Sequences, ModelSequences, Cursors, Chrome, ChromeLayout,
+			Sequences, ModelSequences, Cursors, Chrome, ChromeLayout, ChromeLayoutOverrides,
 			Weapons, Voices, Notifications, Music, FluentMessages, TileSets,
 			ChromeMetrics, MapCompatibility, Missions, Hotkeys;
 
@@ -80,7 +80,7 @@ namespace OpenRA
 		static readonly FrozenSet<string> ReservedModuleNames = new HashSet<string>
 		{
 			"Include", "Metadata", "FileSystem", "MapFolders", "Rules",
-			"Sequences", "ModelSequences", "Cursors", "Chrome", "Assemblies", "ChromeLayout", "Weapons",
+			"Sequences", "ModelSequences", "Cursors", "Chrome", "Assemblies", "ChromeLayout", "ChromeLayoutOverrides", "Weapons",
 			"Voices", "Notifications", "Music", "FluentMessages", "TileSets", "ChromeMetrics", "Missions", "Hotkeys",
 			"ServerTraits", "LoadScreen", "DefaultOrderGenerator", "SupportsMapsFrom", "SoundFormats", "SpriteFormats", "VideoFormats",
 			"SpriteSequenceFormat", "TerrainFormat", "RequiresMods", "PackageFormats", "AllowUnusedFluentMessagesInExternalPackages", "RendererConstants"
@@ -127,6 +127,7 @@ namespace OpenRA
 			Cursors = YamlList(yaml, "Cursors");
 			Chrome = YamlList(yaml, "Chrome");
 			ChromeLayout = YamlList(yaml, "ChromeLayout");
+			ChromeLayoutOverrides = YamlList(yaml, "ChromeLayoutOverrides");
 			Weapons = YamlList(yaml, "Weapons");
 			Voices = YamlList(yaml, "Voices");
 			Notifications = YamlList(yaml, "Notifications");

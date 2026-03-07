@@ -1,0 +1,16 @@
+Container@MAINMENU:
+	Children:
+		Container@MENUS:
+			Height: 360
+			Children:
+				Background@MAIN_MENU:
+					Children:
+						Button@EXIT_TO_LAUNCHER_BUTTON:
+							X: PARENT_WIDTH / 2 - WIDTH / 2
+							Y: 260
+							Width: 140
+							Height: 30
+							Text: button-exit-to-launcher
+							Font: Bold
+						Button@QUIT_BUTTON:
+							Y: 300
