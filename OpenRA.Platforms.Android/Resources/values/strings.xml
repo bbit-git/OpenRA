@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 	<string name="app_name">OpenRA</string>
+	<string name="launcher_tagline">Choose Your Destiny</string>
+	<string name="launcher_no_mods">No mods were found.</string>
 </resources>
