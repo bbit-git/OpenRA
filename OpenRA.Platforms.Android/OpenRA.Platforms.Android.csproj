@@ -9,7 +9,7 @@
 		<!-- Android-specific -->
 		<AndroidApplication>true</AndroidApplication>
 		<AndroidGenerateApplicationPackage>true</AndroidGenerateApplicationPackage>
-		<AndroidPackageFormat>apk</AndroidPackageFormat>
+		<AndroidPackageFormat>bundle</AndroidPackageFormat>
 		<!-- Stability fixes for Mono on Android -->
 		<PublishTrimmed>false</PublishTrimmed>
 		<RunAOTCompilation>false</RunAOTCompilation>
@@ -24,6 +24,7 @@
 		<ProjectReference Include="..\OpenRA.Platforms.SDL2\OpenRA.Platforms.SDL2.csproj" />
 		<ProjectReference Include="..\OpenRA.Mods.Common\OpenRA.Mods.Common.csproj" />
 		<ProjectReference Include="..\OpenRA.Mods.Cnc\OpenRA.Mods.Cnc.csproj" />
+		<ProjectReference Include="..\OpenRA.Mods.D2k\OpenRA.Mods.D2k.csproj" />
 	</ItemGroup>
 
 
@@ -40,6 +41,7 @@
 		<AndroidResource Include="Resources\mipmap-*\*.png" />
 		<AndroidResource Include="Resources\drawable-nodpi\*.png" />
 		<AndroidResource Include="Resources\drawable\*.xml" />
+		<AndroidResource Include="Resources\layout\*.xml" />
 		<AndroidResource Include="Resources\values\*.xml" />
 	</ItemGroup>
 
@@ -63,10 +65,16 @@
 		<AndroidAsset Include="..\VERSION" Link="Assets\engine\VERSION" />
 		<AndroidAsset Include="..\global mix database.dat" Link="Assets\engine\global mix database.dat" />
 		<AndroidAsset Include="..\glsl\**" Link="Assets\engine\glsl\%(RecursiveDir)%(Filename)%(Extension)" />
-		<AndroidAsset Include="..\mods\ra\**" Link="Assets\engine\mods\ra\%(RecursiveDir)%(Filename)%(Extension)" />
 		<AndroidAsset Include="..\mods\common\**" Link="Assets\engine\mods\common\%(RecursiveDir)%(Filename)%(Extension)" />
 		<AndroidAsset Include="..\mods\common-content\**" Link="Assets\engine\mods\common-content\%(RecursiveDir)%(Filename)%(Extension)" />
+		<AndroidAsset Include="..\mods\common-touch\**" Link="Assets\engine\mods\common-touch\%(RecursiveDir)%(Filename)%(Extension)" />
+		<AndroidAsset Include="..\mods\ra\**" Link="Assets\engine\mods\ra\%(RecursiveDir)%(Filename)%(Extension)" />
 		<AndroidAsset Include="..\mods\ra-content\**" Link="Assets\engine\mods\ra-content\%(RecursiveDir)%(Filename)%(Extension)" />
+		<AndroidAsset Include="..\mods\cnc\**" Link="Assets\engine\mods\cnc\%(RecursiveDir)%(Filename)%(Extension)" />
+		<AndroidAsset Include="..\mods\cnc-content\**" Link="Assets\engine\mods\cnc-content\%(RecursiveDir)%(Filename)%(Extension)" />
+		<AndroidAsset Include="..\mods\d2k\**" Link="Assets\engine\mods\d2k\%(RecursiveDir)%(Filename)%(Extension)" />
+		<AndroidAsset Include="..\mods\d2k-content\**" Link="Assets\engine\mods\d2k-content\%(RecursiveDir)%(Filename)%(Extension)" />
+		<AndroidAsset Include="..\mods\ts\**" Link="Assets\engine\mods\ts\%(RecursiveDir)%(Filename)%(Extension)" />
+		<AndroidAsset Include="..\mods\ts-content\**" Link="Assets\engine\mods\ts-content\%(RecursiveDir)%(Filename)%(Extension)" />
 	</ItemGroup>
 </Project>
-

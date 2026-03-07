@@ -17,7 +17,6 @@ namespace OpenRA.Platforms.Android
 	/// </summary>
 	[Activity(
 		Label = "@string/app_name",
-		MainLauncher = true,
 		Icon = "@mipmap/ic_launcher",
 		RoundIcon = "@mipmap/ic_launcher",
 		Theme = "@style/SplashTheme",
@@ -25,11 +24,14 @@ namespace OpenRA.Platforms.Android
 		ConfigurationChanges =
 			ConfigChanges.Orientation |
 			ConfigChanges.ScreenSize |
-			ConfigChanges.KeyboardHidden)]
+			ConfigChanges.KeyboardHidden,
+		Exported = false)]
 	public class MainActivity : global::Org.Libsdl.App.SDLActivity
 	{
+		public const string ModIntentKey = "net.openra.android.extra.MOD_ID";
 		string internalPath;
 		string engineDir;
+		string selectedMod = "ra";
 
 		// OpenRA does not use the stock SDL native-main entry point.
 		// The patched SDLMain.run() calls runGameLoop() via reflection instead,
@@ -42,12 +44,10 @@ namespace OpenRA.Platforms.Android
 			// once the activity is ready to render.
 			SetTheme(global::Android.Resource.Style.ThemeNoTitleBarFullScreen);
 
-			internalPath = FilesDir!.AbsolutePath;
-			engineDir = System.IO.Path.Combine(internalPath, "engine");
-
-			// Extract bundled engine data (mods, glsl, VERSION) from APK assets
-			// to internal storage so the engine can access them via filesystem paths.
-			ExtractAssets("engine", engineDir);
+			var paths = EngineAssets.Prepare(this);
+			internalPath = paths.InternalPath;
+			engineDir = paths.EngineDir;
+			selectedMod = Intent?.GetStringExtra(ModIntentKey) ?? "ra";
 
 			// SDLActivity.OnCreate() loads native libs, creates the SDLSurface,
 			// and wires up all the SDL JNI callbacks.
@@ -64,9 +64,10 @@ namespace OpenRA.Platforms.Android
 		{
 			try
 			{
+				var modToLaunch = string.IsNullOrWhiteSpace(selectedMod) ? "ra" : selectedMod;
 				var args = new[]
 				{
-					"Game.Mod=ra",
+					"Game.Mod=" + modToLaunch,
 					"Engine.EngineDir=" + engineDir,
 					"Engine.SupportDir=" + internalPath
 				};
@@ -87,39 +88,6 @@ namespace OpenRA.Platforms.Android
 				Java.Lang.Thread.Sleep(500);
 				Java.Lang.JavaSystem.Exit(0);
 			}
-		}
-
-		/// <summary>
-		/// Recursively copies an asset folder to a filesystem directory.
-		/// Overwrites existing files every launch to keep assets in sync with the APK.
-		/// </summary>
-		void ExtractAssets(string assetPath, string destPath)
-		{
-			var assets = Assets;
-			var children = assets.List(assetPath);
-
-			if (children == null || children.Length == 0)
-			{
-				// It's a file, not a directory — copy it.
-				CopyAssetFile(assets, assetPath, destPath);
-				return;
-			}
-
-			System.IO.Directory.CreateDirectory(destPath);
-
-			foreach (var child in children)
-				ExtractAssets(assetPath + "/" + child, destPath + "/" + child);
-		}
-
-		static void CopyAssetFile(AssetManager assets, string assetPath, string destPath)
-		{
-			var destDir = System.IO.Path.GetDirectoryName(destPath);
-			if (destDir != null)
-				System.IO.Directory.CreateDirectory(destDir);
-
-			using var input = assets.Open(assetPath);
-			using var output = System.IO.File.Create(destPath);
-			input.CopyTo(output);
 		}
 	}
 }
