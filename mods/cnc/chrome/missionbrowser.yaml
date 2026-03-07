@@ -3,7 +3,7 @@ Container@MISSIONBROWSER_PANEL:
 	X: (WINDOW_WIDTH - WIDTH) / 2
 	Y: (WINDOW_HEIGHT - HEIGHT) / 2
 	Width: 716
-	Height: 435
+	Height: 400
 	Children:
 		Label@MISSIONBROWSER_TITLE:
 			Y: 0 - 34

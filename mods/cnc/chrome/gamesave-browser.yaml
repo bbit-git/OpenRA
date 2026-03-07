@@ -3,7 +3,7 @@ Container@GAMESAVE_BROWSER_PANEL:
 	X: (WINDOW_WIDTH - WIDTH) / 2
 	Y: (WINDOW_HEIGHT - HEIGHT) / 2
 	Width: 716
-	Height: 435
+	Height: 400
 	Children:
 		Label@LOAD_TITLE:
 			Width: PARENT_WIDTH

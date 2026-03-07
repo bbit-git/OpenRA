@@ -3,7 +3,7 @@ Container@CREDITS_PANEL:
 	X: (WINDOW_WIDTH - WIDTH) / 2
 	Y: (WINDOW_HEIGHT - HEIGHT) / 2
 	Width: 410
-	Height: 435
+	Height: 400
 	Children:
 		Label@CREDITS_TITLE:
 			Width: PARENT_WIDTH

@@ -11,7 +11,7 @@ Container@SETTINGS_PANEL:
 	X: (WINDOW_WIDTH - WIDTH) / 2
 	Y: (WINDOW_HEIGHT - HEIGHT) / 2
 	Width: 640
-	Height: 435
+	Height: 400
 	Children:
 		Label@SETTINGS_LABEL_TITLE:
 			Width: PARENT_WIDTH
