@@ -72,7 +72,9 @@ namespace OpenRA.Mods.Common.FileSystem
 		{
 			foreach (var kv in SystemPackages)
 			{
+#if ANDROID
 				Console.WriteLine($"[ContentFS] Mounting system package: {kv.Key} (alias: {kv.Value})");
+#endif
 				fileSystem.Mount(kv.Key, kv.Value);
 			}
 
@@ -82,18 +84,28 @@ namespace OpenRA.Mods.Common.FileSystem
 				{
 					try
 					{
+#if ANDROID
 						Console.WriteLine($"[ContentFS] Mounting content package: {kv.Key} (alias: {kv.Value})");
+#endif
 						fileSystem.Mount(kv.Key, kv.Value);
 					}
-					catch (Exception e)
+					catch (Exception
+#if ANDROID
+						e
+#endif
+					)
 					{
+#if ANDROID
 						Console.WriteLine($"[ContentFS] Failed to mount content package '{kv.Key}': {e.Message}");
+#endif
 						isContentAvailable = false;
 					}
 				}
 			}
 
+#if ANDROID
 			Console.WriteLine($"[ContentFS] Content available: {isContentAvailable}");
+#endif
 
 			if (RequiredContentFiles != null)
 				foreach (var kv in RequiredContentFiles)
@@ -103,16 +115,22 @@ namespace OpenRA.Mods.Common.FileSystem
 
 		bool IFileSystemExternalContent.InstallContentIfRequired(ModData modData)
 		{
+#if ANDROID
 			Console.WriteLine($"[ContentFS] InstallContentIfRequired called. isContentAvailable={isContentAvailable}, ContentInstallerMod={ContentInstallerMod}");
+#endif
 			if (!isContentAvailable && Game.Mods.TryGetValue(ContentInstallerMod, out var mod))
 			{
+#if ANDROID
 				Console.WriteLine($"[ContentFS] Content not available, switching to installer mod: {ContentInstallerMod}");
+#endif
 				Game.InitializeMod(mod, new Arguments());
 			}
+#if ANDROID
 			else if (!isContentAvailable)
 			{
 				Console.WriteLine($"[ContentFS] Content not available but installer mod '{ContentInstallerMod}' not found in Game.Mods!");
 			}
+#endif
 
 			return !isContentAvailable;
 		}

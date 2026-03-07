@@ -110,6 +110,7 @@ android:
 	@echo "Building OpenRA Android bundle (armeabi-v7a)..."
 	@$(DOTNET) build OpenRA.Platforms.Android/OpenRA.Platforms.Android.csproj -c ${CONFIGURATION} \
 		-r android-arm \
+		-p:AndroidBuild=true \
 		-p:AndroidSdkDirectory=$(ANDROID_SDK) \
 		-p:AndroidNdkDirectory=$(ANDROID_NDK) \
 		-p:JavaSdkDirectory=$(JAVA_HOME) \
@@ -117,6 +118,7 @@ android:
 	@echo "Building OpenRA Android bundle (arm64)..."
 	@$(DOTNET) build OpenRA.Platforms.Android/OpenRA.Platforms.Android.csproj -c ${CONFIGURATION} \
 		-r android-arm64 \
+		-p:AndroidBuild=true \
 		-p:AndroidSdkDirectory=$(ANDROID_SDK) \
 		-p:AndroidNdkDirectory=$(ANDROID_NDK) \
 		-p:JavaSdkDirectory=$(JAVA_HOME) \
@@ -124,6 +126,7 @@ android:
 	@echo "Building OpenRA Android bundle (x86_64)..."
 	@$(DOTNET) build OpenRA.Platforms.Android/OpenRA.Platforms.Android.csproj -c ${CONFIGURATION} \
 		-r android-x64 \
+		-p:AndroidBuild=true \
 		-p:AndroidSdkDirectory=$(ANDROID_SDK) \
 		-p:AndroidNdkDirectory=$(ANDROID_NDK) \
 		-p:JavaSdkDirectory=$(JAVA_HOME) \

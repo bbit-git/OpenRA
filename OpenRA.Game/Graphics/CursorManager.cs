@@ -59,8 +59,10 @@ namespace OpenRA.Graphics
 			// Sort the cursors for better packing onto the sheet.
 			foreach (var kv in modData.Cursors)
 			{
+#if ANDROID
 				try
 				{
+#endif
 					var cursorSprites = frameCache[kv.Value.Src];
 					var length = kv.Value.Length ?? cursorSprites.Length - kv.Value.Start;
 
@@ -112,12 +114,16 @@ namespace OpenRA.Graphics
 					c.PaddedSize = 8 * new int2((c.Bounds.Width + 7) / 8, (c.Bounds.Height + 7) / 8);
 
 					cursors.Add(kv.Key, c);
+#if ANDROID
 				}
 				catch (FileNotFoundException e)
 				{
+					// Android-specific workaround: cursor files may be missing
+					// on Android where not all assets are always available.
 					Log.Write("debug", $"Skipping cursor '{kv.Key}': {e.FileName} not found.");
 					Console.WriteLine($"Skipping cursor '{kv.Key}': {e.FileName} not found.");
 				}
+#endif
 			}
 
 			// Allow the utility to create a cursor manager.
