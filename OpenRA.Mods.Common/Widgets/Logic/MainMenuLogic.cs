@@ -99,7 +99,18 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 
 			mainMenu.Get<ButtonWidget>("EXTRAS_BUTTON").OnClick = () => SwitchMenu(MenuType.Extras);
 
-			mainMenu.Get<ButtonWidget>("QUIT_BUTTON").OnClick = Game.Exit;
+			var quitButton = mainMenu.Get<ButtonWidget>("QUIT_BUTTON");
+			var exitToLauncherButton = mainMenu.GetOrNull<ButtonWidget>("EXIT_TO_LAUNCHER_BUTTON");
+			if (exitToLauncherButton != null)
+			{
+				exitToLauncherButton.Visible = Game.CanExitToLauncher;
+				exitToLauncherButton.OnClick = Game.ExitToLauncher;
+
+				if (!Game.CanExitToLauncher)
+					quitButton.Bounds.Y = exitToLauncherButton.Bounds.Y;
+			}
+
+			quitButton.OnClick = Game.Exit;
 
 			// Singleplayer menu
 			var singleplayerMenu = widget.Get("SINGLEPLAYER_MENU");

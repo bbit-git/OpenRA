@@ -92,6 +92,9 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 		const string SaveMapButton = "menu-ingame.save-map";
 
 		[FluentReference]
+		const string ExitToLauncherButton = "menu-ingame.exit-to-launcher";
+
+		[FluentReference]
 		const string ErrorMaxPlayerTitle = "dialog-error-max-player.title";
 
 		[FluentReference("players", "max")]
@@ -139,6 +142,18 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 		[FluentReference]
 		const string ExitToMapEditorCancel = "dialog-exit-to-map-editor.cancel";
 
+		[FluentReference]
+		const string ExitToLauncherTitle = "dialog-exit-to-launcher.title";
+
+		[FluentReference]
+		const string ExitToLauncherPrompt = "dialog-exit-to-launcher.prompt";
+
+		[FluentReference]
+		const string ExitToLauncherConfirm = "dialog-exit-to-launcher.confirm";
+
+		[FluentReference]
+		const string ExitToLauncherCancel = "dialog-exit-to-launcher.cancel";
+
 		readonly Widget menu;
 		readonly Widget buttonContainer;
 		readonly ButtonWidget buttonTemplate;
@@ -177,6 +192,7 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 				{ "MUSIC", CreateMusicButton },
 				{ "SETTINGS", CreateSettingsButton },
 				{ "RESUME", CreateResumeButton },
+				{ "EXIT_TO_LAUNCHER", CreateExitToLauncherButton },
 				{ "SAVE_MAP", CreateSaveMapButton },
 				{ "PLAY_MAP", CreatePlayMapButton },
 				{ "EXIT_EDITOR", CreateExitEditorButton }
@@ -473,6 +489,25 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 			var button = AddButton("RESUME", world.IsGameOver ? ReturnToMap : Resume);
 			button.Key = modData.Hotkeys["escape"];
 			button.OnClick = CloseMenu;
+		}
+
+		void CreateExitToLauncherButton()
+		{
+			if (!Game.CanExitToLauncher)
+				return;
+
+			var button = AddButton("EXIT_TO_LAUNCHER", ExitToLauncherButton);
+			button.OnClick = () =>
+			{
+				hideMenu = true;
+				ConfirmationDialogs.ButtonPrompt(modData,
+					title: ExitToLauncherTitle,
+					text: ExitToLauncherPrompt,
+					onConfirm: () => { leaving = true; Game.ExitToLauncher(); },
+					confirmText: ExitToLauncherConfirm,
+					onCancel: ShowMenu,
+					cancelText: ExitToLauncherCancel);
+			};
 		}
 
 		void CreateSaveMapButton()

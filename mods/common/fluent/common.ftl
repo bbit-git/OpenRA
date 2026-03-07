@@ -3,6 +3,7 @@ button-cancel = Cancel
 button-retry = Retry
 button-back = Back
 button-continue = Continue
+button-exit-to-launcher = Exit to Launcher
 button-quit = Quit
 
 ## Server Orders
@@ -217,6 +218,7 @@ menu-ingame =
     .settings = Settings
     .return-to-map = Return to map
     .resume = Resume
+    .exit-to-launcher = Exit to Launcher
     .save-map = Save Map
     .exit-map = Exit Map Editor
 
@@ -260,6 +262,12 @@ dialog-exit-to-map-editor =
     .title = Leave Mission
     .prompt = Leave this game and return to the editor?
     .confirm = Back To Editor
+    .cancel = Stay
+
+dialog-exit-to-launcher =
+    .title = Exit to Launcher
+    .prompt = Leave this game and return to the launcher?
+    .confirm = Exit to Launcher
     .cancel = Stay
 
 ## IngamePowerBarLogic

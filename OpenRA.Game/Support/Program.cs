@@ -15,6 +15,7 @@ namespace OpenRA
 	{
 		Error = -1,
 		Success = 0,
+		ExitToLauncher = 1,
 		Running = int.MaxValue
 	}
 }

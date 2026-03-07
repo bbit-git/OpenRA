@@ -55,6 +55,7 @@ namespace OpenRA
 
 		public static Renderer Renderer;
 		public static Sound Sound;
+		public static bool CanExitToLauncher { get; set; }
 
 		public static string EngineVersion { get; private set; }
 		public static LocalPlayerProfile LocalPlayerProfile;
@@ -340,6 +341,14 @@ namespace OpenRA
 
 		public static RunStatus InitializeAndRun(string[] args)
 		{
+			// Android can keep the process alive when returning to the launcher,
+			// so a second session must explicitly reset the previous run state.
+			// Only state and delayedActions need resetting here — other statics
+			// (Renderer, Sound, ModData, OrderManager, LocalPlayerProfile, etc.)
+			// are reassigned by Initialize() or disposed at the end of Run().
+			state = RunStatus.Running;
+			delayedActions = new ActionQueue();
+
 			Initialize(new Arguments(args));
 
 			// Proactively collect memory during loading to reduce peak memory.
@@ -995,6 +1004,12 @@ namespace OpenRA
 		public static void Exit()
 		{
 			state = RunStatus.Success;
+		}
+
+		public static void ExitToLauncher()
+		{
+			Log.Write("debug", "ExitToLauncher requested");
+			state = RunStatus.ExitToLauncher;
 		}
 
 		public static void Disconnect()
