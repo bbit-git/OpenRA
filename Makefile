@@ -95,7 +95,7 @@ endif
 	@./fetch-geoip.sh
 
 android:
-	@if [ ! -f OpenRA.Platforms.Android/libs/arm64-v8a/libSDL2.so ]; then \
+	@if [ ! -f OpenRA.Platforms.Android/libs/armeabi-v7a/libSDL2.so ] || [ ! -f OpenRA.Platforms.Android/libs/arm64-v8a/libSDL2.so ]; then \
 		echo "Native SDL2 libraries not found. Run ./build-android-libs.sh first."; \
 		exit 1; \
 	fi
@@ -107,20 +107,35 @@ android:
 		$$(find OpenRA.Platforms.Android/java -name "*.java") 2>&1 | grep -v '^\(warning\|Note\)' || true
 	@$(JAVA_HOME)/bin/jar cf OpenRA.Platforms.Android/sdl2.jar -C /tmp/sdl2-build .
 	@rm -rf /tmp/sdl2-build
-	@echo "Building OpenRA Android APK (arm64)..."
+	@echo "Building OpenRA Android bundle (armeabi-v7a)..."
+	@$(DOTNET) build OpenRA.Platforms.Android/OpenRA.Platforms.Android.csproj -c ${CONFIGURATION} \
+		-r android-arm \
+		-p:AndroidSdkDirectory=$(ANDROID_SDK) \
+		-p:AndroidNdkDirectory=$(ANDROID_NDK) \
+		-p:JavaSdkDirectory=$(JAVA_HOME) \
+		-p:AcceptAndroidSDKLicenses=True
+	@echo "Building OpenRA Android bundle (arm64)..."
 	@$(DOTNET) build OpenRA.Platforms.Android/OpenRA.Platforms.Android.csproj -c ${CONFIGURATION} \
 		-r android-arm64 \
 		-p:AndroidSdkDirectory=$(ANDROID_SDK) \
 		-p:AndroidNdkDirectory=$(ANDROID_NDK) \
 		-p:JavaSdkDirectory=$(JAVA_HOME) \
 		-p:AcceptAndroidSDKLicenses=True
-	@echo "Building OpenRA Android APK (x86_64)..."
+	@echo "Building OpenRA Android bundle (x86_64)..."
 	@$(DOTNET) build OpenRA.Platforms.Android/OpenRA.Platforms.Android.csproj -c ${CONFIGURATION} \
 		-r android-x64 \
 		-p:AndroidSdkDirectory=$(ANDROID_SDK) \
 		-p:AndroidNdkDirectory=$(ANDROID_NDK) \
 		-p:JavaSdkDirectory=$(JAVA_HOME) \
 		-p:AcceptAndroidSDKLicenses=True
+#	@echo "Building OpenRA Android AAB (x86_64)..."
+#	@$(DOTNET) build OpenRA.Platforms.Android/OpenRA.Platforms.Android.csproj -c ${CONFIGURATION} \
+#		-r android-x64 \
+#		-p:AndroidPackageFormat=aab \
+#		-p:AndroidSdkDirectory=$(ANDROID_SDK) \
+#		-p:AndroidNdkDirectory=$(ANDROID_NDK) \
+#		-p:JavaSdkDirectory=$(JAVA_HOME) \
+#		-p:AcceptAndroidSDKLicenses=True
 
 
 # Deleting the intermediate / output directories ensures the build directory is actually clean

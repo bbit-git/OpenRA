@@ -44,12 +44,16 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<AndroidNativeLibrary Include="libs\armeabi-v7a\libSDL2.so" Abi="armeabi-v7a" />
 		<AndroidNativeLibrary Include="libs\arm64-v8a\libSDL2.so" Abi="arm64-v8a" />
 		<AndroidNativeLibrary Include="libs\x86_64\libSDL2.so" Abi="x86_64" />
+		<AndroidNativeLibrary Include="libs\armeabi-v7a\libfreetype6.so" Abi="armeabi-v7a" />
 		<AndroidNativeLibrary Include="libs\arm64-v8a\libfreetype6.so" Abi="arm64-v8a" />
 		<AndroidNativeLibrary Include="libs\x86_64\libfreetype6.so" Abi="x86_64" />
+		<AndroidNativeLibrary Include="libs\armeabi-v7a\libsoft_oal.so" Abi="armeabi-v7a" />
 		<AndroidNativeLibrary Include="libs\arm64-v8a\libsoft_oal.so" Abi="arm64-v8a" />
 		<AndroidNativeLibrary Include="libs\x86_64\libsoft_oal.so" Abi="x86_64" />
+		<AndroidNativeLibrary Include="libs\armeabi-v7a\liblua51.so" Abi="armeabi-v7a" />
 		<AndroidNativeLibrary Include="libs\arm64-v8a\liblua51.so" Abi="arm64-v8a" />
 		<AndroidNativeLibrary Include="libs\x86_64\liblua51.so" Abi="x86_64" />
 	</ItemGroup>
