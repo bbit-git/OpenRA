@@ -24,6 +24,8 @@ namespace OpenRA
 		public WidgetLoader(Manifest manifest, IReadOnlyFileSystem fileSystem)
 		{
 			var stringPool = new HashSet<string>(); // Reuse common strings in YAML
+
+			// Load base widgets (duplicates within base ChromeLayout are errors)
 			foreach (var file in manifest.ChromeLayout.Select(
 				a => MiniYaml.FromStream(fileSystem.Open(a), a, stringPool: stringPool)))
 				foreach (var w in file)
@@ -32,6 +34,53 @@ namespace OpenRA
 					if (widgets.ContainsKey(key))
 						throw new InvalidDataException($"Widget has duplicate Key `{w.Key}` at {w.Location}");
 					widgets.Add(key, w);
+				}
+
+			// Apply overrides from ChromeLayoutOverrides: merge into existing
+			// widget definitions or add new ones. This allows mods to patch
+			// individual widget properties without replacing entire layout files.
+			ApplyOverrides(manifest.ChromeLayoutOverrides, fileSystem, stringPool);
+
+#if ANDROID
+			// Android-specific workaround: auto-discover override files from
+			// chrome-android/ directories matching base chrome/ layout files.
+			// This keeps upstream mod.yaml and chrome/*.yaml files unmodified.
+			var androidOverrides = new List<string>();
+			foreach (var basePath in manifest.ChromeLayout)
+			{
+				var androidPath = basePath.Replace("|chrome/", "|chrome-android/");
+				if (androidPath != basePath && fileSystem.Exists(androidPath))
+					androidOverrides.Add(androidPath);
+			}
+
+			ApplyOverrides(androidOverrides, fileSystem, stringPool);
+#endif
+		}
+
+		void ApplyOverrides(IEnumerable<string> overrideFiles, IReadOnlyFileSystem fileSystem, HashSet<string> stringPool)
+		{
+			foreach (var file in overrideFiles.Select(
+				a => MiniYaml.FromStream(fileSystem.Open(a), a, stringPool: stringPool)))
+				foreach (var w in file)
+				{
+					// Support MiniYaml removal syntax: -Widget@KEY removes the
+					// base widget so a subsequent node can fully replace it.
+					if (w.Key.StartsWith('-'))
+					{
+						var removeKey = w.Key[1..];
+						removeKey = removeKey[(removeKey.IndexOf('@') + 1)..];
+						widgets.Remove(removeKey);
+						continue;
+					}
+
+					var key = w.Key[(w.Key.IndexOf('@') + 1)..];
+					if (widgets.TryGetValue(key, out var existing))
+					{
+						var merged = MiniYaml.Merge(new[] { new[] { existing }, new[] { w } });
+						widgets[key] = merged[0];
+					}
+					else
+						widgets.Add(key, w);
 				}
 		}
 
