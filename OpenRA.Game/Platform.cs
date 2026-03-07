@@ -227,18 +227,21 @@ namespace OpenRA
 		/// </summary>
 		public static void OverrideSupportDir(string path)
 		{
-			if (supportDirInitialized)
-				throw new InvalidOperationException("Attempted to override user support directory after it has already been accessed.");
+			path = NormalizeDirectoryPath(path);
 
 			if (!Directory.Exists(path))
 				throw new DirectoryNotFoundException(path);
 
-			// Ensure that userSupportPath is an absolute path
-			path = Path.GetFullPath(path);
+			if (supportDirInitialized)
+			{
+				// Android-specific workaround: process is kept alive between sessions,
+				// so OverrideSupportDir may be called again with the same path. Allow
+				// idempotent re-entry instead of throwing.
+				if (userSupportPath == path)
+					return;
 
-			if (!path.EndsWith(Path.DirectorySeparatorChar.ToString(), StringComparison.Ordinal) &&
-					!path.EndsWith(Path.AltDirectorySeparatorChar.ToString(), StringComparison.Ordinal))
-				path += Path.DirectorySeparatorChar;
+				throw new InvalidOperationException("Attempted to override user support directory after it has already been accessed.");
+			}
 
 			InitializeSupportDir();
 			userSupportPath = path;
@@ -264,22 +267,39 @@ namespace OpenRA
 		/// </summary>
 		public static void OverrideEngineDir(string path)
 		{
-			if (engineDirAccessed)
-				throw new InvalidOperationException("Attempted to override engine directory after it has already been accessed.");
+			path = NormalizeDirectoryPath(path);
 
+			if (!Directory.Exists(path))
+				throw new DirectoryNotFoundException(path);
+
+			if (engineDirAccessed)
+			{
+				// Android-specific workaround: process is kept alive between sessions,
+				// so OverrideEngineDir may be called again with the same path. Allow
+				// idempotent re-entry instead of throwing.
+				if (engineDir == path)
+					return;
+
+				throw new InvalidOperationException("Attempted to override engine directory after it has already been accessed.");
+			}
+
+			engineDirAccessed = true;
+			engineDir = path;
+		}
+
+		static string NormalizeDirectoryPath(string path)
+		{
 			// Note: Relative paths are interpreted as being relative to BinDir, not the current working dir.
 			if (!Path.IsPathRooted(path))
 				path = Path.Combine(BinDir, path);
 
-			if (!Directory.Exists(path))
-				throw new DirectoryNotFoundException(path);
+			path = Path.GetFullPath(path);
 
 			if (!path.EndsWith(Path.DirectorySeparatorChar.ToString(), StringComparison.Ordinal) &&
 				!path.EndsWith(Path.AltDirectorySeparatorChar.ToString(), StringComparison.Ordinal))
 				path += Path.DirectorySeparatorChar;
 
-			engineDirAccessed = true;
-			engineDir = path;
+			return path;
 		}
 
 		public static string BinDir

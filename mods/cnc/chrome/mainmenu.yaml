@@ -44,7 +44,7 @@ Container@MENU_BACKGROUND:
 		Container@MENUS:
 			X: (WINDOW_WIDTH - WIDTH) / 2
 			Y: WINDOW_HEIGHT - 33 - HEIGHT - 10
-			Width: 890
+			Width: 1040
 			Height: 35
 			Children:
 				Container@MAIN_MENU:
@@ -89,8 +89,14 @@ Container@MENU_BACKGROUND:
 							Width: 140
 							Height: 35
 							Text: button-main-menu-content
-						Button@QUIT_BUTTON:
+						Button@EXIT_TO_LAUNCHER_BUTTON:
 							X: 750
+							Y: 0
+							Width: 140
+							Height: 35
+							Text: button-exit-to-launcher
+						Button@QUIT_BUTTON:
+							X: 900
 							Y: 0
 							Width: 140
 							Height: 35

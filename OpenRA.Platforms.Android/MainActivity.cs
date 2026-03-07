@@ -1,4 +1,5 @@
 using Android.App;
+using Android.Content;
 using Android.Content.PM;
 using Android.Content.Res;
 using Android.OS;
@@ -62,6 +63,8 @@ namespace OpenRA.Platforms.Android
 		[Java.Interop.Export("runGameLoop")]
 		public void RunGameLoop()
 		{
+			var runStatus = RunStatus.Error;
+
 			try
 			{
 				var modToLaunch = string.IsNullOrWhiteSpace(selectedMod) ? "ra" : selectedMod;
@@ -72,7 +75,8 @@ namespace OpenRA.Platforms.Android
 					"Engine.SupportDir=" + internalPath
 				};
 
-				Game.InitializeAndRun(args);
+				Game.CanExitToLauncher = true;
+				runStatus = Game.InitializeAndRun(args);
 			}
 			catch (System.Exception ex)
 			{
@@ -80,13 +84,30 @@ namespace OpenRA.Platforms.Android
 			}
 			finally
 			{
-				// Game loop has ended — finish the activity so the process exits cleanly.
-				RunOnUiThread(() => FinishAndRemoveTask());
+				Game.CanExitToLauncher = false;
 
-				// FinishAndRemoveTask only finishes the Activity; the process stays alive.
-				// Force-exit so stale state doesn't linger.
-				Java.Lang.Thread.Sleep(500);
-				Java.Lang.JavaSystem.Exit(0);
+				if (runStatus == RunStatus.ExitToLauncher)
+				{
+					global::Android.Util.Log.Info("OpenRA", "ExitToLauncher: returning to launcher activity");
+					RunOnUiThread(() =>
+					{
+						var launcherIntent = new Intent(this, typeof(LauncherActivity));
+						launcherIntent.AddFlags(ActivityFlags.ClearTop | ActivityFlags.NewTask | ActivityFlags.SingleTop);
+						StartActivity(launcherIntent);
+						Finish();
+					});
+				}
+				else
+				{
+					// Game loop has ended — finish the activity so the process exits cleanly.
+					global::Android.Util.Log.Info("OpenRA", $"Game loop ended with status {runStatus}, terminating process");
+					RunOnUiThread(() => FinishAndRemoveTask());
+
+					// FinishAndRemoveTask only finishes the Activity; the process stays alive.
+					// Force-exit so stale state doesn't linger.
+					Java.Lang.Thread.Sleep(500);
+					Java.Lang.JavaSystem.Exit(0);
+				}
 			}
 		}
 	}
