@@ -305,7 +305,7 @@ else
 	EXT="apk"
 fi
 
-ARTIFACT="${SRCDIR}/OpenRA.Platforms.Android/obj/bin/net8.0-android34.0/net.openra.android-Signed.${EXT}"
+ARTIFACT="${SRCDIR}/OpenRA.Platforms.Android/obj/bin/net8.0-android34.0/com.bigbangit.openra.android-Signed.${EXT}"
 if [ ! -f "${ARTIFACT}" ]; then
 	echo >&2 "ERROR: artifact not found at ${ARTIFACT}"
 	exit 1

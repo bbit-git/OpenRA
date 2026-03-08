@@ -43,7 +43,7 @@ Create `OpenRA.Platforms.Android/signing.properties` (git-ignored):
 ```properties
 KEYSTORE_FILE=/path/to/release.keystore
 KEYSTORE_PASSWORD=changeme
-KEY_ALIAS=net.openra.android
+KEY_ALIAS=com.bigbangit.openra.android
 KEY_PASSWORD=changeme
 ```
 
@@ -54,7 +54,7 @@ The script loads this file automatically if present.
 ```sh
 export KEYSTORE_FILE=/path/to/release.keystore
 export KEYSTORE_PASSWORD=...
-export KEY_ALIAS=net.openra.android
+export KEY_ALIAS=com.bigbangit.openra.android
 export KEY_PASSWORD=...
 packaging/android/buildpackage.sh
 ```
@@ -64,7 +64,7 @@ packaging/android/buildpackage.sh
 ```sh
 keytool -genkeypair -v \
   -keystore release.keystore \
-  -alias net.openra.android \
+  -alias com.bigbangit.openra.android \
   -keyalg RSA -keysize 4096 \
   -validity 10000
 ```

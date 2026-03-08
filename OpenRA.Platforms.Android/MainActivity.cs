@@ -29,7 +29,7 @@ namespace OpenRA.Platforms.Android
 		Exported = false)]
 	public class MainActivity : global::Org.Libsdl.App.SDLActivity
 	{
-		public const string ModIntentKey = "net.openra.android.extra.MOD_ID";
+		public const string ModIntentKey = "com.bigbangit.openra.android.extra.MOD_ID";
 		string internalPath;
 		string engineDir;
 		string selectedMod = "ra";
