@@ -78,10 +78,49 @@ OUTPUT_DIR="${SRCDIR}/OpenRA.Platforms.Android/libs"
 # Check whether native libraries need (re)building
 ###############################################################################
 
+native_lib_has_symbol() {
+	local lib="$1" symbol="$2"
+	[ -f "${lib}" ] || return 1
+
+	if command -v readelf >/dev/null 2>&1; then
+		readelf -Ws "${lib}" 2>/dev/null | grep -q "${symbol}"
+		return $?
+	fi
+
+	# Android-specific safeguard: generated .so files can exist but contain the
+	# wrong payload for a given ABI. Fall back to strings when readelf is absent.
+	strings -a "${lib}" 2>/dev/null | grep -q "${symbol}"
+}
+
+native_lib_is_valid() {
+	local lib="$1"
+
+	case "$(basename "${lib}")" in
+		libSDL2.so)
+			native_lib_has_symbol "${lib}" "Java_org_libsdl_app_SDLActivity_nativeGetVersion"
+			;;
+		libfreetype6.so)
+			native_lib_has_symbol "${lib}" "FT_Done_Face"
+			;;
+		libsoft_oal.so)
+			native_lib_has_symbol "${lib}" "alcOpenDevice"
+			;;
+		liblua51.so)
+			native_lib_has_symbol "${lib}" "luaL_newstate"
+			;;
+		*)
+			return 1
+			;;
+	esac
+}
+
 NEED_NATIVE=false
 for ABI in ${ABIS}; do
 	for LIB in libSDL2.so libfreetype6.so libsoft_oal.so liblua51.so; do
-		[ -f "${OUTPUT_DIR}/${ABI}/${LIB}" ] || NEED_NATIVE=true
+		if ! native_lib_is_valid "${OUTPUT_DIR}/${ABI}/${LIB}"; then
+			echo "Native library missing or invalid for ${ABI}: ${LIB}"
+			NEED_NATIVE=true
+		fi
 	done
 done
 
