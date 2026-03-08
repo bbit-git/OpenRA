@@ -13,7 +13,7 @@ namespace OpenRA.Platforms.Android.Content
 	/// via content:// URIs. Allows authorized apps (signed with the same
 	/// key) to read and write game content files.
 	///
-	/// URI format: content://net.openra.android.content/file/{relative-path}
+	/// URI format: content://com.bigbangit.openra.android.content/file/{relative-path}
 	///
 	/// Android-specific integration layer for external content management.
 	/// </summary>
