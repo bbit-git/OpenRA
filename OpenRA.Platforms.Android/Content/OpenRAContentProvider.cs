@@ -45,7 +45,7 @@ namespace OpenRA.Platforms.Android.Content
 			if (mode == "r")
 			{
 				if (!File.Exists(target))
-					throw new FileNotFoundException("File not found: " + uri);
+					throw new Java.IO.FileNotFoundException("File not found: " + uri);
 
 				return ParcelFileDescriptor.Open(
 					new Java.IO.File(target),
