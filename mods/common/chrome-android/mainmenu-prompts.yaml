@@ -1,3 +1,7 @@
+# Android: reduce intro prompt height from 541 to 480 so it fits within
+# the 512px logical-height floor set in Sdl2PlatformWindow.cs.
+# Without this, the prompt overflows on low-density/small screens.
+# Limitation: content is more compact; may need scroll if more items are added.
 -Background@MAINMENU_INTRODUCTION_PROMPT:
 -Background@MAINMENU_SYSTEM_INFO_PROMPT:
 Background@MAINMENU_INTRODUCTION_PROMPT:
@@ -5,7 +9,7 @@ Background@MAINMENU_INTRODUCTION_PROMPT:
 	X: (WINDOW_WIDTH - WIDTH) / 2
 	Y: (WINDOW_HEIGHT - HEIGHT) / 2
 	Width: 700
-	Height: 541
+	Height: 480
 	Children:
 		Label@PROMPT_TITLE:
 			Width: PARENT_WIDTH
