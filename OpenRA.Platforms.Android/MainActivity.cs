@@ -67,6 +67,10 @@ namespace OpenRA.Platforms.Android
 
 			try
 			{
+				// Register battery metrics provider before the game loop starts.
+				OpenRA.Support.BatteryMetrics.Reset();
+				OpenRA.Support.BatteryMetrics.SetProvider(new AndroidBatteryMetrics(this));
+
 				var modToLaunch = string.IsNullOrWhiteSpace(selectedMod) ? "ra" : selectedMod;
 				var args = new[]
 				{
