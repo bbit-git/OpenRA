@@ -100,6 +100,9 @@ android:
 		CONFIGURATION=$(CONFIGURATION) \
 		packaging/android/buildpackage.sh $(OUTPUTDIR)
 
+android-logs:
+	@adb logcat --pid=$$(adb shell pidof -s com.bigbangit.openra.android)
+
 
 # Deleting the intermediate / output directories ensures the build directory is actually clean
 clean:
@@ -210,4 +213,4 @@ help:
 
 .SUFFIXES:
 
-.PHONY: all android clean check check-scripts test version install install-linux-shortcuts install-linux-appdata install-man help
+.PHONY: all android android-logs clean check check-scripts test version install install-linux-shortcuts install-linux-appdata install-man help
