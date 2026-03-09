@@ -239,8 +239,12 @@ namespace OpenRA.Platforms.SDL2
 					if (SDL.SDL_GetDisplayDPI(videoDisplay, out var ddpi, out _, out _) == 0)
 						windowScale = ddpi / 160f;
 
-					// Cap scale so the logical height is at least 480
-					var maxScale = display.h / 480f;
+					// Android: cap scale so logical height is at least 512.
+					// Panels have a minimum height of ~480; a 512px floor ensures
+					// they fit with margins on low-density/small screens.
+					// Without this, panels can overflow or clip on devices where
+					// high DPI scaling would push the logical resolution too low.
+					var maxScale = display.h / 512f;
 					if (windowScale > maxScale)
 						windowScale = maxScale;
 				}
