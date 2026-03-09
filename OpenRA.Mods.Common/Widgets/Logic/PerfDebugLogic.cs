@@ -48,12 +48,24 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 
 				var wfbSize = Game.Renderer.WorldFrameBufferSize;
 				var viewportSize = worldRenderer.Viewport.ViewportSize;
-				return $"FPS: {fps:0}\n" +
+				var text = $"FPS: {fps:0}\n" +
 					$"Tick: {worldRenderer.World.WorldTick} / {Game.LocalTick} @ {PerfHistory.Items["tick_time"].Average(Game.Settings.Debug.Samples):F1} ms\n" +
 					$"Render {Game.RenderFrame} @ {PerfHistory.Items["render"].Average(Game.Settings.Debug.Samples):F1} ms\n" +
 					$"Batches: {PerfHistory.Items["batches"].LastValue}\n" +
 					$"Viewport Size: {viewportSize.Width} x {viewportSize.Height} / {Game.Renderer.WorldDownscaleFactor}\n" +
 					$"WFB Size: {wfbSize.Width} x {wfbSize.Height}";
+
+				// Android-specific: show battery-side power estimate when available.
+				if (BatteryMetrics.IsAvailable)
+				{
+					var samples = Game.Settings.Debug.Samples;
+					var currentMA = PerfHistory.Items["battery_mA"].Average(samples);
+					var powerMW = PerfHistory.Items["battery_mW"].Average(samples);
+					var chargingTag = BatteryMetrics.IsCharging ? " [CHG]" : "";
+					text += $"\nBattery: {currentMA:F0} mA / {powerMW:F0} mW{chargingTag}";
+				}
+
+				return text;
 			};
 
 			Game.AfterGameStart += OnGameStart;

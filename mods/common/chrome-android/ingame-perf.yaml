@@ -1,0 +1,5 @@
+Container@PERF_WIDGETS:
+	Children:
+		Label@PERF_TEXT:
+			Y: WINDOW_HEIGHT - 79
+			Height: 50
