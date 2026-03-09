@@ -1,2 +1,5 @@
 Background@MISSIONBROWSER_PANEL:
 	Height: 480
+	Children:
+		ScrollPanel@MISSION_LIST:
+			Height: 370
