@@ -36,6 +36,7 @@ namespace OpenRA
 		const string SavedScreenshot = "notification-saved-screenshot";
 
 		public const int TimestepJankThreshold = 250; // Don't catch up for delays larger than 250ms
+		const int GameSaveLoadingBatchSize = 50;
 
 		public static InstalledMods Mods { get; private set; }
 		public static ExternalMods ExternalMods { get; private set; }
@@ -696,7 +697,28 @@ namespace OpenRA
 						return;
 					}
 
-					if (orderManager.TryTick())
+					if (world.IsLoadingGameSave)
+					{
+						// Batch multiple ticks during save loading for better throughput.
+						// This avoids the overhead of re-entering the game loop and TickTime
+						// gate for each individual tick, significantly reducing load times
+						// on slower devices (e.g. Android).
+						for (var i = 0; i < GameSaveLoadingBatchSize; i++)
+						{
+							// Periodically receive more orders from the connection
+							if (i > 0 && i % 10 == 0)
+								Sync.RunUnsynced(world, orderManager.TickImmediate);
+
+							if (!orderManager.TryTick())
+								break;
+
+							world.Tick();
+
+							if (!world.IsLoadingGameSave)
+								break;
+						}
+					}
+					else if (orderManager.TryTick())
 					{
 						Sync.RunUnsynced(world, () => world.OrderGenerator.Tick(world));
 
@@ -708,8 +730,10 @@ namespace OpenRA
 						PerfHistory.Tick(!world.Paused);
 					}
 
-					// Wait until we have done our first world Tick before TickRendering
-					if (orderManager.LocalFrameNumber > 0)
+					// Wait until we have done our first world Tick before TickRendering.
+					// Skip during save loading — ITickRender work is wasted while the
+					// loading screen is displayed.
+					if (orderManager.LocalFrameNumber > 0 && !world.IsLoadingGameSave)
 						Sync.RunUnsynced(world, () => world.TickRender(worldRenderer));
 				}
 
