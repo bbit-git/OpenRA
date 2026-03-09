@@ -702,6 +702,9 @@ namespace OpenRA
 
 						world.Tick();
 
+						// Android-specific: collect battery current/power when perf overlay is active.
+						if (Settings.Debug.PerfText || Settings.Debug.PerfGraph)
+							BatteryMetrics.CollectSample();
 						PerfHistory.Tick(!world.Paused);
 					}
 
