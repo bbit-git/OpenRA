@@ -1,6 +1,9 @@
 #version {VERSION}
 #ifdef GL_ES
-precision mediump float;
+// highp is required: mediump (~10-bit mantissa) causes precision loss when
+// multiplying texture coords by atlas size (2048), breaking SamplePalettedBilinear
+// for sprites packed at atlas positions beyond ~512px (error >= 0.5 texel).
+precision highp float;
 #endif
 
 uniform sampler2D Texture0;
