@@ -18,7 +18,7 @@ namespace OpenRA.Platforms.SDL2
 	{
 		enum State { Idle, WaitingForGesture, LongPressDrag, TwoFingerActive, Cancelled }
 
-		const int LongPressMs = 400;
+		public int LongPressMs = 400;
 		const int TapMaxMovePx = 15;
 		const int DragThresholdPx = 15;
 		const float PinchZoomScale = 0.04f;

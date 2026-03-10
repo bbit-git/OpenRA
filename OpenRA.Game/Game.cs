@@ -446,15 +446,14 @@ namespace OpenRA
 				Console.WriteLine($"\t{mod.Key} ({mod.Value.Version})");
 
 			var defaultPlatform = "SDL2";
-			// Force touch-friendly input settings: Classic mode maps Left click to contextual
-			// orders, alternate scroll button uses Middle for camera pan, and Standard scroll
-			// gives direct-manipulation panning with the gesture recognizer.
+			// Android: default to Touch control scheme when the user has no saved preference.
+			// Touch maps Left click to actions (matching gesture recognizer taps), Middle for
+			// camera pan (matching two-finger gestures), and Standard scroll for direct panning.
 			if (Platform.CurrentPlatform == PlatformType.Android)
 			{
 				Settings.Game.Platform = "SDL2";
-				Settings.Game.MouseControlStyle = MouseControlStyle.Classic;
-				Settings.Game.UseAlternateScrollButton = true;
-				Settings.Game.MouseScroll = MouseScrollType.Standard;
+				if (Settings.Game.Yaml.NodeWithKeyOrDefault("MouseControlStyle") == null)
+					Settings.Game.MouseControlStyle = MouseControlStyle.Touch;
 			}
 
 			var platforms = new[] { Settings.Game.Platform, defaultPlatform, null };

@@ -319,7 +319,10 @@ namespace OpenRA.Platforms.SDL2
 			}
 
 			if (Platform.CurrentPlatform == PlatformType.Android)
+			{
+				touchRecognizer.LongPressMs = Game.Settings.Game.TouchLongPressMs;
 				touchRecognizer.ProcessTimers(device, inputHandler, mods);
+			}
 
 			if (pendingMotion != null)
 				inputHandler.OnMouseInput(pendingMotion.Value);

@@ -309,7 +309,7 @@ namespace OpenRA.Mods.Common.Widgets
 
 			// We can't select through the minimap in Mouse Control Types other than Classic,
 			// as they move the minimap on left click, so don't show the selection cursor for them
-			if (cursor == null || (gameSettings.MouseControlStyle != MouseControlStyle.Classic && cursor == worldSelectCursor))
+			if (cursor == null || (!gameSettings.IsClassicStyle && cursor == worldSelectCursor))
 				cursor = worldDefaultCursor;
 
 			return modData.Cursors.ContainsKey(cursor + "-minimap") ? cursor + "-minimap" : cursor;
