@@ -209,6 +209,8 @@ namespace OpenRA.Widgets
 		}
 	}
 
+	public interface ILongTapRightClick { }
+
 	public abstract class Widget
 	{
 		string defaultCursor = null;
@@ -363,6 +365,18 @@ namespace OpenRA.Widgets
 					return true;
 
 			return false;
+		}
+
+		public bool IsLongTapRightClickAt(int2 location)
+		{
+			if (!IsVisible())
+				return false;
+
+			foreach (var child in Children)
+				if (child.IsLongTapRightClickAt(location))
+					return true;
+
+			return this is ILongTapRightClick && EventBounds.Contains(location);
 		}
 
 		public bool HasMouseFocus => Ui.MouseFocusWidget == this;
