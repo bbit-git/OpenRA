@@ -28,6 +28,9 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 		const string OtherRTS = "options-control-scheme.otherrts";
 
 		[FluentReference]
+		const string TouchScheme = "options-control-scheme.touch";
+
+		[FluentReference]
 		const string Disabled = "options-mouse-scroll-type.disabled";
 
 		[FluentReference]
@@ -52,6 +55,10 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 				{ MouseControlStyle.Modern, FluentProvider.GetMessage(Modern) },
 				{ MouseControlStyle.OtherRTS, FluentProvider.GetMessage(OtherRTS) },
 			};
+
+			if (Platform.CurrentPlatform == PlatformType.Android)
+				controlTypes[MouseControlStyle.Touch] = FluentProvider.GetMessage(TouchScheme);
+
 			gameSettings = modData.GetSettings<GameSettings>();
 
 			settingsLogic.RegisterSettingsPanel(panelID, label, InitPanel, ResetPanel);
@@ -69,8 +76,9 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 			SettingsUtils.BindSliderPref(panel, "UI_SCROLLSPEED_SLIDER", gameSettings, "UIScrollSpeed");
 
 			var mouseControlDropdown = panel.Get<DropDownButtonWidget>("MOUSE_CONTROL_DROPDOWN");
-			mouseControlDropdown.OnMouseDown = _ => ShowMouseControlDropdown(mouseControlDropdown, controlTypes, gameSettings);
-			mouseControlDropdown.GetText = () => controlTypes[gameSettings.MouseControlStyle];
+			mouseControlDropdown.OnMouseDown = _ => ShowMouseControlDropdown(mouseControlDropdown, controlTypes, gameSettings,
+				() => scrollPanel.Layout.AdjustChildren());
+			mouseControlDropdown.GetText = () => controlTypes.TryGetValue(gameSettings.MouseControlStyle, out var name) ? name : gameSettings.MouseControlStyle.ToString();
 
 			var mouseScrollDropdown = panel.Get<DropDownButtonWidget>("MOUSE_SCROLL_TYPE_DROPDOWN");
 			mouseScrollDropdown.OnMouseDown = _ => ShowMouseScrollDropdown(mouseScrollDropdown, gameSettings);
@@ -88,6 +96,10 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 
 			var mouseControlDescOtherRTS = panel.Get("MOUSE_CONTROL_DESC_OTHERRTS");
 			mouseControlDescOtherRTS.IsVisible = () => gameSettings.MouseControlStyle == MouseControlStyle.OtherRTS;
+
+			var mouseControlDescTouch = panel.GetOrNull("MOUSE_CONTROL_DESC_TOUCH");
+			if (mouseControlDescTouch != null)
+				mouseControlDescTouch.IsVisible = () => gameSettings.MouseControlStyle == MouseControlStyle.Touch;
 
 			foreach (var container in new[] { mouseControlDescClassic, mouseControlDescModern, mouseControlDescOtherRTS })
 			{
@@ -132,6 +144,15 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 			zoomModifierDropdown.GetText = () => gameSettings.ZoomModifier.ToString();
 #pragma warning restore IDE0200
 
+			var touchSection = panel.GetOrNull("TOUCH_SECTION");
+			if (touchSection != null)
+			{
+				touchSection.IsVisible = () => gameSettings.MouseControlStyle == MouseControlStyle.Touch;
+
+				if (Platform.CurrentPlatform == PlatformType.Android)
+					SettingsUtils.BindIntSliderPref(panel, "TOUCH_LONGPRESS_SLIDER", gameSettings, "TouchLongPressMs");
+			}
+
 			SettingsUtils.AdjustSettingsScrollPanelLayout(scrollPanel);
 
 			return () => false;
@@ -140,10 +161,14 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 		Action ResetPanel(Widget panel)
 		{
 			var defaultGameSettings = new GameSettings();
+			var scrollPanel = panel.Get<ScrollPanelWidget>("SETTINGS_SCROLLPANEL");
 
 			return () =>
 			{
-				gameSettings.MouseControlStyle = defaultGameSettings.MouseControlStyle;
+				// Android defaults to Touch; the C# class default is Modern.
+				gameSettings.MouseControlStyle = Platform.CurrentPlatform == PlatformType.Android
+					? MouseControlStyle.Touch
+					: defaultGameSettings.MouseControlStyle;
 				gameSettings.MouseScroll = defaultGameSettings.MouseScroll;
 				gameSettings.UseAlternateScrollButton = defaultGameSettings.UseAlternateScrollButton;
 				gameSettings.LockMouseWindow = defaultGameSettings.LockMouseWindow;
@@ -152,21 +177,26 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 				gameSettings.ZoomSpeed = defaultGameSettings.ZoomSpeed;
 				gameSettings.UIScrollSpeed = defaultGameSettings.UIScrollSpeed;
 				gameSettings.ZoomModifier = defaultGameSettings.ZoomModifier;
+				gameSettings.TouchLongPressMs = defaultGameSettings.TouchLongPressMs;
 
 				panel.Get<SliderWidget>("SCROLLSPEED_SLIDER").Value = gameSettings.ViewportEdgeScrollStep;
 				panel.Get<SliderWidget>("UI_SCROLLSPEED_SLIDER").Value = gameSettings.UIScrollSpeed;
 
+				if (Platform.CurrentPlatform == PlatformType.Android)
+					panel.Get<SliderWidget>("TOUCH_LONGPRESS_SLIDER").Value = gameSettings.TouchLongPressMs;
+
 				MakeMouseFocusSettingsLive(gameSettings);
+				scrollPanel.Layout.AdjustChildren();
 			};
 		}
 
-		public static void ShowMouseControlDropdown(DropDownButtonWidget dropdown, Dictionary<MouseControlStyle, string> controlTypes, GameSettings gameSettings)
+		public static void ShowMouseControlDropdown(DropDownButtonWidget dropdown, Dictionary<MouseControlStyle, string> controlTypes, GameSettings gameSettings, Action onChanged = null)
 		{
 			ScrollItemWidget SetupItem(MouseControlStyle o, ScrollItemWidget itemTemplate)
 			{
 				var item = ScrollItemWidget.Setup(itemTemplate,
 					() => gameSettings.MouseControlStyle == o,
-					() => gameSettings.MouseControlStyle = o);
+					() => { gameSettings.MouseControlStyle = o; onChanged?.Invoke(); });
 
 				var label = controlTypes[o];
 				item.Get<LabelWidget>("LABEL").GetText = () => label;

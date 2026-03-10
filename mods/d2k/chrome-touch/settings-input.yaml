@@ -1,0 +1,94 @@
+Container@INPUT_PANEL:
+	Children:
+		ScrollPanel@SETTINGS_SCROLLPANEL:
+			Children:
+				Container@ROW[%0]:
+					Children:
+						Container@MOUSE_CONTROL_DESC_TOUCH:
+							X: 10
+							Y: 55
+							Width: PARENT_WIDTH
+							Children:
+								LabelWithHighlight@DESC_SELECTION:
+									Width: PARENT_WIDTH
+									Height: 16
+									Font: Small
+									Text: label-mouse-control-desc-touch-selection
+								LabelWithHighlight@DESC_COMMANDS:
+									Y: 17
+									Width: PARENT_WIDTH
+									Height: 16
+									Font: Small
+									Text: label-mouse-control-desc-touch-commands
+								LabelWithHighlight@DESC_ORDERS:
+									Y: 34
+									Width: PARENT_WIDTH
+									Height: 16
+									Font: Small
+									Text: label-mouse-control-desc-touch-orders
+								LabelWithHighlight@DESC_BUILDINGS:
+									Y: 51
+									Width: PARENT_WIDTH
+									Height: 16
+									Font: Small
+									Text: label-mouse-control-desc-touch-buildings
+								LabelWithHighlight@DESC_SUPPORT:
+									Y: 68
+									Width: PARENT_WIDTH
+									Height: 16
+									Font: Small
+									Text: label-mouse-control-desc-touch-support
+								LabelWithHighlight@DESC_ZOOM:
+									Y: 85
+									Width: PARENT_WIDTH
+									Height: 16
+									Font: Small
+									Text: label-mouse-control-desc-touch-zoom
+								LabelWithHighlight@DESC_SCROLL:
+									Y: 102
+									Width: PARENT_WIDTH
+									Height: 16
+									Font: Small
+									Text: label-mouse-control-desc-touch-scroll
+								LabelWithHighlight@DESC_LONGPRESS:
+									Y: 119
+									Width: PARENT_WIDTH
+									Height: 16
+									Font: Small
+									Text: label-mouse-control-desc-touch-longpress
+				Container@TOUCH_SECTION:
+					Height: 73
+					Children:
+						Background@TOUCH_TAP_SECTION_HEADER:
+							X: 5
+							Width: PARENT_WIDTH - 24 - 10
+							Height: 13
+							Background: separator
+							ClickThrough: True
+							Children:
+								Label@LABEL:
+									Width: PARENT_WIDTH
+									Height: PARENT_HEIGHT
+									Font: TinyBold
+									Align: Center
+									Text: label-touch-tap-section-header
+						Container@TOUCH_TAP_ROW:
+							Y: 23
+							Width: PARENT_WIDTH - 24
+							Height: 50
+							Children:
+								Container@TOUCH_LONGPRESS_SLIDER_CONTAINER:
+									X: PARENT_WIDTH / 2 + 10
+									Width: PARENT_WIDTH / 2 - 20
+									Children:
+										Label@TOUCH_LONGPRESS_LABEL:
+											Width: PARENT_WIDTH
+											Height: 20
+											Text: label-touch-longpress-slider
+										Slider@TOUCH_LONGPRESS_SLIDER:
+											Y: 25
+											Width: PARENT_WIDTH
+											Height: 20
+											Ticks: 7
+											MinimumValue: 200
+											MaximumValue: 500

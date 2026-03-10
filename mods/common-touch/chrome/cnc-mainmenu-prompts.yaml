@@ -315,6 +315,57 @@ Container@MAINMENU_INTRODUCTION_PROMPT:
 											Height: 16
 											Font: Small
 											Text: label-mouse-control-desc-modern-edgescroll
+								Container@MOUSE_CONTROL_DESC_TOUCH:
+									X: PARENT_WIDTH / 2 + 10
+									Width: PARENT_WIDTH / 2 - 20
+									Children:
+										LabelWithHighlight@DESC_SELECTION:
+											Width: PARENT_WIDTH
+											Height: 16
+											Font: Small
+											Text: label-mouse-control-desc-touch-selection
+										LabelWithHighlight@DESC_COMMANDS:
+											Y: 17
+											Width: PARENT_WIDTH
+											Height: 16
+											Font: Small
+											Text: label-mouse-control-desc-touch-commands
+										LabelWithHighlight@DESC_ORDERS:
+											Y: 34
+											Width: PARENT_WIDTH
+											Height: 16
+											Font: Small
+											Text: label-mouse-control-desc-touch-orders
+										LabelWithHighlight@DESC_BUILDINGS:
+											Y: 51
+											Width: PARENT_WIDTH
+											Height: 16
+											Font: Small
+											Text: label-mouse-control-desc-touch-buildings
+										LabelWithHighlight@DESC_SUPPORT:
+											Y: 68
+											Width: PARENT_WIDTH
+											Height: 16
+											Font: Small
+											Text: label-mouse-control-desc-touch-support
+										LabelWithHighlight@DESC_ZOOM:
+											Y: 85
+											Width: PARENT_WIDTH
+											Height: 16
+											Font: Small
+											Text: label-mouse-control-desc-touch-zoom
+										LabelWithHighlight@DESC_SCROLL:
+											Y: 102
+											Width: PARENT_WIDTH
+											Height: 16
+											Font: Small
+											Text: label-mouse-control-desc-touch-scroll
+										LabelWithHighlight@DESC_LONGPRESS:
+											Y: 119
+											Width: PARENT_WIDTH
+											Height: 16
+											Font: Small
+											Text: label-mouse-control-desc-touch-longpress
 						Container@EDGESCROLL_ROW:
 							Y: 60
 							Width: PARENT_WIDTH

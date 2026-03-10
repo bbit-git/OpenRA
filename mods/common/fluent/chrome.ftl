@@ -459,6 +459,14 @@ label-mouse-control-desc-modern-zoom-modifier = - Zoom the battlefield using <MO
 label-mouse-control-desc-modern-scroll-right = - Pan the battlefield using the <Right> mouse button
 label-mouse-control-desc-modern-scroll-middle = - Pan the battlefield using the <Middle> mouse button
 label-mouse-control-desc-modern-edgescroll = or by moving the cursor to the edge of the screen
+label-mouse-control-desc-touch-selection = - <Tap> to select units
+label-mouse-control-desc-touch-commands = - <Tap> to command units
+label-mouse-control-desc-touch-orders = - <Tap> to confirm orders
+label-mouse-control-desc-touch-buildings = - <Tap> to place structures
+label-mouse-control-desc-touch-support = - <Tap> to target support powers
+label-mouse-control-desc-touch-zoom = - <Pinch> to zoom the battlefield
+label-mouse-control-desc-touch-scroll = - <Two-finger drag> to pan the battlefield
+label-mouse-control-desc-touch-longpress = - <Long tap> to box select
 checkbox-edgescroll-container = Screen Edge Panning
 
 ## mainmenu.yaml
@@ -705,6 +713,8 @@ label-mouse-scroll-type-container = Pan Behaviour:
 label-scrollspeed-slider-container-scroll-speed = Pan Speed:
 label-zoomspeed-slider-container-zoom-speed = Zoom Speed:
 label-ui-scrollspeed-slider-container-scroll-speed = UI Scroll Speed:
+label-touch-tap-section-header = Tap Behaviour
+label-touch-longpress-slider = Long Tap:
 
 ## settings.yaml
 button-settings-panel-reset = Reset

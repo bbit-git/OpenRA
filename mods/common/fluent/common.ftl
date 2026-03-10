@@ -409,6 +409,7 @@ options-control-scheme =
     .classic = Classic
     .modern = Modern
     .otherrts = Other RTS
+    .touch = Touch
 
 ## SettingsLogic
 dialog-settings-save =
