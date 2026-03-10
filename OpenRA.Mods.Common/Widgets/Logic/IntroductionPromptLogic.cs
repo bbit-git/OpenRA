@@ -32,6 +32,9 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 		[FluentReference]
 		const string OtherRTS = "options-control-scheme.otherrts";
 
+		[FluentReference]
+		const string TouchScheme = "options-control-scheme.touch";
+
 		public static bool ShouldShowPrompt()
 		{
 			return Game.Settings.Game.IntroductionPromptVersion < IntroductionVersion;
@@ -75,6 +78,9 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 				{ MouseControlStyle.Modern, FluentProvider.GetMessage(Modern) },
 				{ MouseControlStyle.OtherRTS, FluentProvider.GetMessage(OtherRTS) },
 			};
+
+			if (Platform.CurrentPlatform == PlatformType.Android)
+				controlTypes[MouseControlStyle.Touch] = FluentProvider.GetMessage(TouchScheme);
 
 			if (gameSettings.IntroductionPromptVersion < 2)
 			{
@@ -131,9 +137,13 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 			var mouseControlDescOtherRTS = widget.Get("MOUSE_CONTROL_DESC_OTHERRTS");
 			mouseControlDescOtherRTS.IsVisible = () => gameSettings.MouseControlStyle == MouseControlStyle.OtherRTS;
 
+			var mouseControlDescTouch = widget.GetOrNull("MOUSE_CONTROL_DESC_TOUCH");
+			if (mouseControlDescTouch != null)
+				mouseControlDescTouch.IsVisible = () => gameSettings.MouseControlStyle == MouseControlStyle.Touch;
+
 			var mouseControlDropdown = widget.Get<DropDownButtonWidget>("MOUSE_CONTROL_DROPDOWN");
 			mouseControlDropdown.OnMouseDown = _ => InputSettingsLogic.ShowMouseControlDropdown(mouseControlDropdown, controlTypes, gameSettings);
-			mouseControlDropdown.GetText = () => controlTypes[gameSettings.MouseControlStyle];
+			mouseControlDropdown.GetText = () => controlTypes.TryGetValue(gameSettings.MouseControlStyle, out var name) ? name : gameSettings.MouseControlStyle.ToString();
 
 			foreach (var container in new[] { mouseControlDescClassic, mouseControlDescModern, mouseControlDescOtherRTS })
 			{
