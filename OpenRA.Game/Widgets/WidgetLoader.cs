@@ -43,12 +43,12 @@ namespace OpenRA
 
 #if ANDROID
 			// Android-specific workaround: auto-discover override files from
-			// chrome-android/ directories matching base chrome/ layout files.
+			// chrome-touch/ directories matching base chrome/ layout files.
 			// This keeps upstream mod.yaml and chrome/*.yaml files unmodified.
 			var androidOverrides = new List<string>();
 			foreach (var basePath in manifest.ChromeLayout)
 			{
-				var androidPath = basePath.Replace("|chrome/", "|chrome-android/");
+				var androidPath = basePath.Replace("|chrome/", "|chrome-touch/");
 				if (androidPath != basePath && fileSystem.Exists(androidPath))
 					androidOverrides.Add(androidPath);
 			}
@@ -75,10 +75,7 @@ namespace OpenRA
 
 					var key = w.Key[(w.Key.IndexOf('@') + 1)..];
 					if (widgets.TryGetValue(key, out var existing))
-					{
-						var merged = MiniYaml.Merge(new[] { new[] { existing }, new[] { w } });
-						widgets[key] = merged[0];
-					}
+						widgets[key] = MiniYaml.MergeOverlay(existing, w);
 					else
 						widgets.Add(key, w);
 				}
