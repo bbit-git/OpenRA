@@ -154,6 +154,56 @@ FluentMessages:
 	cnc|fluent/hotkeys.ftl
 	cnc|fluent/rules.ftl
 
+FluentTranslations:
+	cs:
+		common|fluent/cs/common.ftl
+		common|fluent/cs/hotkeys.ftl
+		common|fluent/cs/rules.ftl
+		cnc|fluent/cs/cnc.ftl
+		cnc|fluent/cs/chrome.ftl
+		cnc|fluent/cs/hotkeys.ftl
+		cnc|fluent/cs/rules.ftl
+	pl:
+		common|fluent/pl/common.ftl
+		common|fluent/pl/hotkeys.ftl
+		common|fluent/pl/rules.ftl
+		cnc|fluent/pl/cnc.ftl
+		cnc|fluent/pl/chrome.ftl
+		cnc|fluent/pl/hotkeys.ftl
+		cnc|fluent/pl/rules.ftl
+	sk:
+		common|fluent/sk/common.ftl
+		common|fluent/sk/hotkeys.ftl
+		common|fluent/sk/rules.ftl
+		cnc|fluent/sk/cnc.ftl
+		cnc|fluent/sk/chrome.ftl
+		cnc|fluent/sk/hotkeys.ftl
+		cnc|fluent/sk/rules.ftl
+	ja:
+		common|fluent/ja/common.ftl
+		common|fluent/ja/hotkeys.ftl
+		common|fluent/ja/rules.ftl
+		cnc|fluent/ja/cnc.ftl
+		cnc|fluent/ja/chrome.ftl
+		cnc|fluent/ja/hotkeys.ftl
+		cnc|fluent/ja/rules.ftl
+	ko:
+		common|fluent/ko/common.ftl
+		common|fluent/ko/hotkeys.ftl
+		common|fluent/ko/rules.ftl
+		cnc|fluent/ko/cnc.ftl
+		cnc|fluent/ko/chrome.ftl
+		cnc|fluent/ko/hotkeys.ftl
+		cnc|fluent/ko/rules.ftl
+	zh:
+		common|fluent/zh/common.ftl
+		common|fluent/zh/hotkeys.ftl
+		common|fluent/zh/rules.ftl
+		cnc|fluent/zh/cnc.ftl
+		cnc|fluent/zh/chrome.ftl
+		cnc|fluent/zh/hotkeys.ftl
+		cnc|fluent/zh/rules.ftl
+
 AllowUnusedFluentMessagesInExternalPackages: false
 
 Voices:
@@ -194,34 +244,42 @@ ChromeMetrics:
 Fonts:
 	Tiny:
 		Font: common|FreeSans.ttf
+		FallbackFont: common|DroidSansFallbackFull.ttf
 		Size: 10
 		Ascender: 8
 	TinyBold:
 		Font: common|FreeSansBold.ttf
+		FallbackFont: common|DroidSansFallbackFull.ttf
 		Size: 10
 		Ascender: 8
 	Small:
 		Font: common|FreeSans.ttf
+		FallbackFont: common|DroidSansFallbackFull.ttf
 		Size: 12
 		Ascender: 9
 	Regular:
 		Font: common|FreeSans.ttf
+		FallbackFont: common|DroidSansFallbackFull.ttf
 		Size: 14
 		Ascender: 11
 	Bold:
 		Font: common|FreeSansBold.ttf
+		FallbackFont: common|DroidSansFallbackFull.ttf
 		Size: 14
 		Ascender: 11
 	MediumBold:
 		Font: common|FreeSansBold.ttf
+		FallbackFont: common|DroidSansFallbackFull.ttf
 		Size: 18
 		Ascender: 14
 	BigBold:
 		Font: common|FreeSansBold.ttf
+		FallbackFont: common|DroidSansFallbackFull.ttf
 		Size: 24
 		Ascender: 18
 	Title:
 		Font: common|FreeSansBold.ttf
+		FallbackFont: common|DroidSansFallbackFull.ttf
 		Size: 32
 		Ascender: 24
 

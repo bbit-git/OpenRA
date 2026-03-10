@@ -17,6 +17,7 @@ namespace OpenRA
 	public class FontData
 	{
 		public readonly string Font;
+		public readonly string FallbackFont;
 		public readonly int Size;
 		public readonly int Ascender;
 	}

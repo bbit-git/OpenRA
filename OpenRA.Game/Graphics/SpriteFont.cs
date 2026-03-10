@@ -10,6 +10,8 @@
 #endregion
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using OpenRA.Primitives;
 using OpenRA.Support;
 
@@ -20,23 +22,26 @@ namespace OpenRA.Graphics
 		public int TopOffset { get; }
 		readonly int size;
 		readonly SheetBuilder builder;
-		readonly IFont font;
+		readonly IFont[] fonts;
 		readonly Cache<char, GlyphInfo> glyphs;
 		readonly Cache<(char C, int Radius), Sprite> contrastGlyphs;
 		readonly Cache<int, float[]> dilationElements;
 
 		float deviceScale;
 
-		public SpriteFont(IPlatform platform, string name, byte[] data, int size, int ascender, float scale, SheetBuilder builder)
+		public SpriteFont(IPlatform platform, string name, IEnumerable<byte[]> fontData, int size, int ascender, float scale, SheetBuilder builder)
 		{
 			if (builder.Type != SheetType.BGRA)
 				throw new ArgumentException("The sheet builder must create BGRA sheets.", nameof(builder));
+
+			fonts = fontData.Select(platform.CreateFont).ToArray();
+			if (fonts.Length == 0)
+				throw new ArgumentException("At least one font source is required.", nameof(fontData));
 
 			deviceScale = scale;
 			this.size = size;
 			this.builder = builder;
 
-			font = platform.CreateFont(data);
 			glyphs = new Cache<char, GlyphInfo>(CreateGlyph);
 			contrastGlyphs = new Cache<(char, int), Sprite>(CreateContrastGlyph);
 			dilationElements = new Cache<int, float[]>(CreateCircularWeightMap);
@@ -256,7 +261,14 @@ namespace OpenRA.Graphics
 
 		GlyphInfo CreateGlyph(char c)
 		{
-			var glyph = font.CreateGlyph(c, size, deviceScale);
+			FontGlyph glyph = default;
+			foreach (var font in fonts)
+			{
+				glyph = font.CreateGlyph(c, size, deviceScale);
+				if (glyph.Data != null)
+					break;
+			}
+
 			if (glyph.Data == null)
 			{
 				return new GlyphInfo
@@ -423,7 +435,8 @@ namespace OpenRA.Graphics
 
 		public void Dispose()
 		{
-			font.Dispose();
+			foreach (var font in fonts)
+				font.Dispose();
 		}
 	}
 

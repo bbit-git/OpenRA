@@ -190,6 +190,49 @@ help:
 	@echo
 	@echo 'to install a Unix man page'
 	@echo '  make install-man'
+	@echo
+	@echo 'to check translation completeness, run:'
+	@echo '  make check-translations [LANGS="sk pl"] [ARGS="--missing-only"]'
+	@echo
+	@echo 'to create stub translation files from English for missing or new languages, run:'
+	@echo '  make check-translations LANGS="sk" ARGS="--create-stubs"'
+	@echo '  make check-translations LANGS="de" ARGS="--create-stubs"'
+	@echo
+	@echo 'to export translation issues to CSV (default 100 rows per language), run:'
+	@echo '  make check-translations LANGS="sk" ARGS="--csv exports/"'
+	@echo '  make check-translations ARGS="--csv exports/ --limit 50 --export-all"'
+	@echo
+	@echo 'to set a single translation entry, run:'
+	@echo '  make translate LANG=sk KEY=label-title VALUE="My Title"'
+	@echo '  make translate LANG=sk KEY=checkbox-fog.label VALUE="Hmla" ARGS="--mod common"'
+	@echo
+	@echo 'to import translations from a filled CSV, run:'
+	@echo '  make import-translations CSV=exports/sk.csv'
+	@echo '  make import-translations CSV=exports/ ARGS="--dry-run"'
+	@echo
+	@echo 'to start the MCP translation server (for agent use), run:'
+	@echo '  make start-mcp'
+
+########################### TRANSLATION TOOLS ##########################
+#
+VENV_DIR = .venv
+VENV_PYTHON = $(VENV_DIR)/bin/python3
+
+$(VENV_DIR):
+	@python3 -m venv $(VENV_DIR)
+	@$(VENV_DIR)/bin/pip install fluent.syntax mcp -q
+
+check-translations: $(VENV_DIR)
+	@$(VENV_PYTHON) tools/check_translations.py $(LANGS) $(ARGS)
+
+translate: $(VENV_DIR)
+	@$(VENV_PYTHON) tools/translate.py $(LANG) $(KEY) $(VALUE) $(ARGS)
+
+import-translations: $(VENV_DIR)
+	@$(VENV_PYTHON) tools/import_translations.py $(CSV) $(ARGS)
+
+start-mcp: $(VENV_DIR)
+	@$(VENV_PYTHON) tools/translation_mcp_server.py
 
 ########################### MAKEFILE SETTINGS ##########################
 #
@@ -197,4 +240,4 @@ help:
 
 .SUFFIXES:
 
-.PHONY: all clean check check-scripts test version install install-linux-shortcuts install-linux-appdata install-man help
+.PHONY: all clean check check-scripts test version install install-linux-shortcuts install-linux-appdata install-man help check-translations translate import-translations start-mcp

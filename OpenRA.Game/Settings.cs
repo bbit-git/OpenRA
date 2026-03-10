@@ -317,6 +317,7 @@ namespace OpenRA
 	[YamlNode("Game", shared: true)]
 	public class GameSettings : SettingsModule
 	{
+		public string Language = "en";
 		public string Platform = "Default";
 
 		public bool ViewportEdgeScroll = true;

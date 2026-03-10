@@ -41,29 +41,52 @@ FluentMessages:
 	content|fluent/chrome.ftl
 	cnccontent|fluent/chrome.ftl
 
+FluentTranslations:
+	cs:
+		common|fluent/cs/common.ftl
+		content|fluent/cs/content.ftl
+		content|fluent/cs/chrome.ftl
+		cnccontent|fluent/cs/chrome.ftl
+	pl:
+		common|fluent/pl/common.ftl
+		content|fluent/pl/content.ftl
+		content|fluent/pl/chrome.ftl
+		cnccontent|fluent/pl/chrome.ftl
+	sk:
+		common|fluent/sk/common.ftl
+		content|fluent/sk/content.ftl
+		content|fluent/sk/chrome.ftl
+		cnccontent|fluent/sk/chrome.ftl
+
 Fonts:
 	Tiny:
 		Font: common|FreeSans.ttf
+		FallbackFont: common|DroidSansFallbackFull.ttf
 		Size: 10
 		Ascender: 8
 	TinyBold:
 		Font: common|FreeSansBold.ttf
+		FallbackFont: common|DroidSansFallbackFull.ttf
 		Size: 10
 		Ascender: 8
 	Regular:
 		Font: common|FreeSans.ttf
+		FallbackFont: common|DroidSansFallbackFull.ttf
 		Size: 14
 		Ascender: 11
 	Bold:
 		Font: common|FreeSansBold.ttf
+		FallbackFont: common|DroidSansFallbackFull.ttf
 		Size: 14
 		Ascender: 11
 	MediumBold:
 		Font: common|FreeSansBold.ttf
+		FallbackFont: common|DroidSansFallbackFull.ttf
 		Size: 18
 		Ascender: 14
 	BigBold:
 		Font: common|FreeSansBold.ttf
+		FallbackFont: common|DroidSansFallbackFull.ttf
 		Size: 24
 		Ascender: 18
 

@@ -1,0 +1,8 @@
+## rules.yaml
+briefing =
+    LANDCOM 66 HQS.
+    PŘÍSNĚ TAJNÉ.
+    PRO: POLNÍHO VELITELE A34
+    
+    SOVĚTI ZAHÁJILI TĚŽKÉ ÚTOKY NA NAŠI POZICI.
+     PŘEŽIJTE A UDRŽTE SE, DOKUD NEDORAZÍ POSILY.

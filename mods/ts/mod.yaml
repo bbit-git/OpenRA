@@ -184,6 +184,35 @@ FluentMessages:
 	ts|fluent/hotkeys.ftl
 	ts|fluent/rules.ftl
 
+FluentTranslations:
+	ja:
+		common|fluent/ja/common.ftl
+		common|fluent/ja/chrome.ftl
+		common|fluent/ja/hotkeys.ftl
+		common|fluent/ja/rules.ftl
+		ts|fluent/ja/ts.ftl
+		ts|fluent/ja/chrome.ftl
+		ts|fluent/ja/hotkeys.ftl
+		ts|fluent/ja/rules.ftl
+	ko:
+		common|fluent/ko/common.ftl
+		common|fluent/ko/chrome.ftl
+		common|fluent/ko/hotkeys.ftl
+		common|fluent/ko/rules.ftl
+		ts|fluent/ko/ts.ftl
+		ts|fluent/ko/chrome.ftl
+		ts|fluent/ko/hotkeys.ftl
+		ts|fluent/ko/rules.ftl
+	zh:
+		common|fluent/zh/common.ftl
+		common|fluent/zh/chrome.ftl
+		common|fluent/zh/hotkeys.ftl
+		common|fluent/zh/rules.ftl
+		ts|fluent/zh/ts.ftl
+		ts|fluent/zh/chrome.ftl
+		ts|fluent/zh/hotkeys.ftl
+		ts|fluent/zh/rules.ftl
+
 AllowUnusedFluentMessagesInExternalPackages: false
 
 Voices:
@@ -224,34 +253,42 @@ ChromeMetrics:
 Fonts:
 	Tiny:
 		Font: common|FreeSans.ttf
+		FallbackFont: common|DroidSansFallbackFull.ttf
 		Size: 10
 		Ascender: 8
 	TinyBold:
 		Font: common|FreeSansBold.ttf
+		FallbackFont: common|DroidSansFallbackFull.ttf
 		Size: 10
 		Ascender: 8
 	Small:
 		Font: common|FreeSans.ttf
+		FallbackFont: common|DroidSansFallbackFull.ttf
 		Size: 12
 		Ascender: 9
 	Regular:
 		Font: common|FreeSans.ttf
+		FallbackFont: common|DroidSansFallbackFull.ttf
 		Size: 14
 		Ascender: 11
 	Bold:
 		Font: common|FreeSansBold.ttf
+		FallbackFont: common|DroidSansFallbackFull.ttf
 		Size: 14
 		Ascender: 11
 	MediumBold:
 		Font: common|FreeSansBold.ttf
+		FallbackFont: common|DroidSansFallbackFull.ttf
 		Size: 18
 		Ascender: 14
 	BigBold:
 		Font: common|FreeSansBold.ttf
+		FallbackFont: common|DroidSansFallbackFull.ttf
 		Size: 24
 		Ascender: 18
 	Title:
 		Font: common|FreeSansBold.ttf
+		FallbackFont: common|DroidSansFallbackFull.ttf
 		Size: 32
 		Ascender: 24
 

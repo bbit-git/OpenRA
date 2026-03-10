@@ -44,26 +44,32 @@ FluentMessages:
 Fonts:
 	Tiny:
 		Font: common|FreeSans.ttf
+		FallbackFont: common|DroidSansFallbackFull.ttf
 		Size: 10
 		Ascender: 8
 	TinyBold:
 		Font: common|FreeSansBold.ttf
+		FallbackFont: common|DroidSansFallbackFull.ttf
 		Size: 10
 		Ascender: 8
 	Regular:
 		Font: common|FreeSans.ttf
+		FallbackFont: common|DroidSansFallbackFull.ttf
 		Size: 14
 		Ascender: 11
 	Bold:
 		Font: common|FreeSansBold.ttf
+		FallbackFont: common|DroidSansFallbackFull.ttf
 		Size: 14
 		Ascender: 11
 	MediumBold:
 		Font: common|FreeSansBold.ttf
+		FallbackFont: common|DroidSansFallbackFull.ttf
 		Size: 18
 		Ascender: 14
 	BigBold:
 		Font: common|FreeSansBold.ttf
+		FallbackFont: common|DroidSansFallbackFull.ttf
 		Size: 24
 		Ascender: 18
 

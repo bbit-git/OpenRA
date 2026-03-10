@@ -1,0 +1,6 @@
+## rules.yaml
+briefing =
+    PRICHÁDZAJÚCI HLÁSENIE:
+    
+    veliteľ! Sovieti urobili naše sily zbytočnými...
+    Správy naznačujú, že prichádzajú sovietske posily, aby nás ukončili... Situácia vyzerá bezútešne...

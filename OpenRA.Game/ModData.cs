@@ -51,12 +51,11 @@ namespace OpenRA
 		readonly Lazy<IReadOnlyDictionary<string, ITerrainInfo>> defaultTerrainInfo;
 		public IReadOnlyDictionary<string, ITerrainInfo> DefaultTerrainInfo => defaultTerrainInfo.Value;
 
+		readonly string activeCulture;
 		readonly TypeDictionary modules = [];
 
 		public ModData(Manifest mod, InstalledMods mods, bool useLoadScreen = false)
 		{
-			Languages = [];
-
 			// Take a local copy of the manifest
 			Manifest = new Manifest(mod.Id, mod.Package);
 			ObjectCreator = new ObjectCreator(Manifest, mods);
@@ -91,7 +90,9 @@ namespace OpenRA
 				modules.Add(module);
 			}
 
-			FluentProvider.Initialize(Manifest, DefaultFileSystem);
+			activeCulture = Game.Settings?.Game?.Language ?? "en";
+			Languages = Manifest.FluentTranslations.Keys.Prepend("en").ToArray();
+			FluentProvider.Initialize(Manifest, DefaultFileSystem, activeCulture);
 
 			if (useLoadScreen)
 			{
@@ -166,7 +167,7 @@ namespace OpenRA
 			ChromeMetrics.Initialize(this);
 			ChromeProvider.Initialize(this);
 			Ui.Initialize(this);
-			FluentProvider.Initialize(Manifest, fileSystem);
+			FluentProvider.Initialize(Manifest, fileSystem, activeCulture);
 
 			Game.Sound.Initialize(SoundLoaders, fileSystem);
 		}

@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "openra-translations": {
+      "type": "stdio",
+      "command": "/home/andrzej/workspace.local/Android/OpenRA/.venv/bin/python3",
+      "args": [
+        "/home/andrzej/workspace.local/Android/OpenRA/tools/translation_mcp_server.py"
+      ]
+    }
+  }
+}

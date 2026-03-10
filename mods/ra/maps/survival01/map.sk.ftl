@@ -1,0 +1,12 @@
+## rules.yaml
+briefing =
+    LANDCOM 66 HQS.
+    PRÍSNE TAJNÉ.
+    PRE: VELITEĽA POLE A34
+    
+    SVIETCI SPUSTILI NA NAŠE POZÍCIE ŤAŽKÉ ÚTOKY.
+     PREŽITE A DRŽTE ZÁKLADNU, KÝM NEPRÍDU NAŠI FRANCÚZSKY SPOJENCI.
+    
+    POTVRDZOVACÍ KÓD 5593.
+    
+    PRENOS KONČÍ.

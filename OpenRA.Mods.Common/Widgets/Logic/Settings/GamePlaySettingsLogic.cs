@@ -11,6 +11,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
 using OpenRA.Graphics;
 using OpenRA.Mods.Common.Traits;
 using OpenRA.Widgets;
@@ -30,6 +32,10 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 
 		[FluentReference]
 		const string AutoSaveMaxFileNumber = "auto-save-max-file-number";
+
+		[FluentReference]
+		const string LanguageEnglish = "options-language.english";
+
 		readonly int[] autoSaveSeconds = [0, 10, 30, 45, 60, 120, 180, 300, 600];
 
 		readonly int[] autoSaveFileNumbers = [3, 5, 10, 20, 50, 100];
@@ -39,6 +45,7 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 		readonly WorldRenderer worldRenderer;
 		readonly ModData modData;
 
+		string originalLanguage;
 		TextFieldWidget nameTextfield;
 
 		[ObjectCreator.UseCtor]
@@ -102,6 +109,15 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 
 			SettingsUtils.BindCheckboxPref(panel, "HIDE_REPLAY_CHAT_CHECKBOX", gameSettings, "HideReplayChat");
 
+			// Language dropdown
+			originalLanguage = gameSettings.Language;
+			var languageDropDown = panel.Get<DropDownButtonWidget>("LANGUAGE_DROP_DOWN");
+			languageDropDown.OnMouseDown = _ => ShowLanguageDropdown(languageDropDown);
+			languageDropDown.GetText = () => GetLanguageDisplayName(gameSettings.Language);
+
+			var restartDesc = panel.Get("LANGUAGE_RESTART_DESC");
+			restartDesc.IsVisible = () => gameSettings.Language != originalLanguage;
+
 			var autoSaveIntervalDropDown = panel.Get<DropDownButtonWidget>("AUTO_SAVE_INTERVAL_DROP_DOWN");
 			autoSaveIntervalDropDown.OnClick = () =>
 				ShowAutoSaveIntervalDropdown(autoSaveIntervalDropDown, autoSaveSeconds);
@@ -119,7 +135,7 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 			return () =>
 			{
 				nameTextfield.YieldKeyboardFocus();
-				return false;
+				return gameSettings.Language != originalLanguage;
 			};
 		}
 
@@ -135,6 +151,7 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 				autoSaveSettings.AutoSaveInterval = defaultAutoSaveSettings.AutoSaveInterval;
 				autoSaveSettings.AutoSaveMaxFileCount = defaultAutoSaveSettings.AutoSaveMaxFileCount;
 				gameSettings.HideReplayChat = defaultGameSettings.HideReplayChat;
+				gameSettings.Language = defaultGameSettings.Language;
 			};
 		}
 
@@ -188,5 +205,39 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 				< 60 => FluentProvider.GetMessage(AutoSaveIntervalOptions, "seconds", value),
 				_ => FluentProvider.GetMessage(AutoSaveIntervalMinuteOptions, "minutes", value / 60)
 			};
+
+		string GetLanguageDisplayName(string culture)
+		{
+			if (culture == "en")
+				return FluentProvider.GetMessage(LanguageEnglish);
+
+			try
+			{
+				var ci = new CultureInfo(culture);
+				return ci.NativeName;
+			}
+			catch (CultureNotFoundException)
+			{
+				return culture;
+			}
+		}
+
+		void ShowLanguageDropdown(DropDownButtonWidget dropdown)
+		{
+			var languages = modData.Languages.ToList();
+
+			ScrollItemWidget SetupItem(string culture, ScrollItemWidget itemTemplate)
+			{
+				var item = ScrollItemWidget.Setup(itemTemplate,
+					() => gameSettings.Language == culture,
+					() => gameSettings.Language = culture);
+
+				var label = GetLanguageDisplayName(culture);
+				item.Get<LabelWidget>("LABEL").GetText = () => label;
+				return item;
+			}
+
+			dropdown.ShowDropDown("LABEL_DROPDOWN_TEMPLATE", 500, languages, SetupItem);
+		}
 	}
 }

@@ -49,6 +49,9 @@ namespace OpenRA.Platforms.Default
 
 		[DllImport("freetype6", CallingConvention = CallingConvention.Cdecl)]
 		internal static extern uint FT_Load_Char(IntPtr face, uint char_code, int load_flags);
+
+		[DllImport("freetype6", CallingConvention = CallingConvention.Cdecl)]
+		internal static extern uint FT_Get_Char_Index(IntPtr face, uint charcode);
 	}
 
 	public sealed class FreeTypeFont : IFont
@@ -80,6 +83,12 @@ namespace OpenRA.Platforms.Default
 		{
 			var scaledSize = (uint)(size * deviceScale);
 			if (FreeType.FT_Set_Pixel_Sizes(face, scaledSize, scaledSize) != FreeType.OK)
+				return EmptyGlyph;
+
+			// FreeType will render the .notdef glyph for missing characters unless
+			// we explicitly check the char index first. Treat those as missing so
+			// SpriteFont can fall back to the next configured font face.
+			if (c != '\0' && FreeType.FT_Get_Char_Index(face, c) == 0)
 				return EmptyGlyph;
 
 			if (FreeType.FT_Load_Char(face, c, FreeType.FT_LOAD_RENDER) != FreeType.OK)

@@ -135,7 +135,7 @@ namespace OpenRA
 				fontSheetBuilder = new SheetBuilder(SheetType.BGRA, modData.Manifest.RendererConstants.FontSheetSize);
 				Fonts = modData.GetOrCreate<Fonts>().FontList.ToDictionary(x => x.Key,
 					x => new SpriteFont(
-						platform, x.Value.Font, modData.DefaultFileSystem.Open(x.Value.Font).ReadAllBytes(),
+						platform, x.Value.Font, GetFontSources(modData, x.Value),
 						x.Value.Size, x.Value.Ascender, Window.EffectiveWindowScale, fontSheetBuilder));
 			}
 
@@ -152,6 +152,14 @@ namespace OpenRA
 						f.Value.SetScale(newEffective);
 				});
 			};
+		}
+
+		static IEnumerable<byte[]> GetFontSources(ModData modData, FontData fontData)
+		{
+			yield return modData.DefaultFileSystem.Open(fontData.Font).ReadAllBytes();
+
+			if (!string.IsNullOrEmpty(fontData.FallbackFont))
+				yield return modData.DefaultFileSystem.Open(fontData.FallbackFont).ReadAllBytes();
 		}
 
 		public void SetDepthMargin(float depthMargin)

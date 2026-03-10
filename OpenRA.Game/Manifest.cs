@@ -73,15 +73,15 @@ namespace OpenRA
 		public readonly string SpriteSequenceFormat;
 		public readonly string TerrainFormat;
 
-		// TODO: This should be controlled by a user-selected translation bundle!
 		public readonly string FluentCulture = "en";
+		public readonly FrozenDictionary<string, ImmutableArray<string>> FluentTranslations;
 		public readonly bool AllowUnusedFluentMessagesInExternalPackages = true;
 
 		static readonly FrozenSet<string> ReservedModuleNames = new HashSet<string>
 		{
 			"Include", "Metadata", "FileSystem", "MapFolders", "Rules",
 			"Sequences", "ModelSequences", "Cursors", "Chrome", "Assemblies", "ChromeLayout", "Weapons",
-			"Voices", "Notifications", "Music", "FluentMessages", "TileSets", "ChromeMetrics", "Missions", "Hotkeys",
+			"Voices", "Notifications", "Music", "FluentMessages", "FluentTranslations", "TileSets", "ChromeMetrics", "Missions", "Hotkeys",
 			"ServerTraits", "LoadScreen", "DefaultOrderGenerator", "SupportsMapsFrom", "SoundFormats", "SpriteFormats", "VideoFormats",
 			"SpriteSequenceFormat", "TerrainFormat", "RequiresMods", "PackageFormats", "AllowUnusedFluentMessagesInExternalPackages", "RendererConstants"
 		}.ToFrozenSet();
@@ -173,6 +173,17 @@ namespace OpenRA
 
 			if (yaml.TryGetValue("TerrainFormat", out entry))
 				TerrainFormat = entry.Value;
+
+			if (yaml.TryGetValue("FluentTranslations", out entry))
+			{
+				var dict = new Dictionary<string, ImmutableArray<string>>();
+				foreach (var cultureNode in entry.Nodes)
+					dict[cultureNode.Key] = cultureNode.Value.Nodes.Select(n => n.Key).ToImmutableArray();
+
+				FluentTranslations = dict.ToFrozenDictionary();
+			}
+			else
+				FluentTranslations = FrozenDictionary<string, ImmutableArray<string>>.Empty;
 
 			if (yaml.TryGetValue("AllowUnusedFluentMessagesInExternalPackages", out entry))
 				AllowUnusedFluentMessagesInExternalPackages =

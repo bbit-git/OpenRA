@@ -21,13 +21,28 @@ namespace OpenRA
 		// Ensure thread-safety.
 		static readonly object SyncObject = new();
 		static FluentBundle modFluentBundle;
+		static FluentBundle localizedFluentBundle;
+		static FluentBundle localizedMapFluentBundle;
 		static FluentBundle mapFluentBundle;
 
-		public static void Initialize(Manifest manifest, IReadOnlyFileSystem fileSystem)
+		public static void Initialize(Manifest manifest, IReadOnlyFileSystem fileSystem, string culture = null)
 		{
 			lock (SyncObject)
 			{
+				// Always build the English base bundle.
 				modFluentBundle = new FluentBundle(manifest.FluentCulture, manifest.FluentMessages, fileSystem);
+
+				// Build localized override bundle if a non-English culture is selected.
+				localizedFluentBundle = null;
+				if (!string.IsNullOrEmpty(culture) && culture != "en"
+					&& manifest.FluentTranslations.TryGetValue(culture, out var translationPaths)
+					&& translationPaths.Length > 0)
+				{
+					localizedFluentBundle = new FluentBundle(culture, translationPaths, fileSystem);
+					Log.Write("debug", $"Localization: loaded {translationPaths.Length} files for culture '{culture}'");
+				}
+
+				localizedMapFluentBundle = null;
 				if (fileSystem is Map map && map.FluentMessageDefinitions != null)
 				{
 					var files = ImmutableArray<string>.Empty;
@@ -46,6 +61,26 @@ namespace OpenRA
 					}
 
 					mapFluentBundle = new FluentBundle(manifest.FluentCulture, files, fileSystem, text);
+
+					if (!string.IsNullOrEmpty(culture) && culture != "en")
+					{
+						var localizedMapFiles = ImmutableArray.CreateBuilder<string>();
+						foreach (var file in files)
+						{
+							// Transform "pkg|fluent/name.ftl" -> "pkg|fluent/<culture>/name.ftl".
+							// Skip paths without a package prefix (e.g. embedded "map.ftl").
+							var separatorIdx = file.IndexOf("|fluent/", StringComparison.Ordinal);
+							if (separatorIdx < 0)
+								continue;
+
+							var localizedPath = file[..(separatorIdx + "|fluent/".Length)] + culture + "/" + file[(separatorIdx + "|fluent/".Length)..];
+							if (fileSystem.Exists(localizedPath))
+								localizedMapFiles.Add(localizedPath);
+						}
+
+						if (localizedMapFiles.Count > 0)
+							localizedMapFluentBundle = new FluentBundle(culture, localizedMapFiles.ToImmutable(), fileSystem);
+					}
 				}
 			}
 		}
@@ -54,10 +89,17 @@ namespace OpenRA
 		{
 			lock (SyncObject)
 			{
+				// Try localized bundle first for translated messages.
+				if (localizedFluentBundle != null && localizedFluentBundle.TryGetMessage(key, out var localizedMessage, args))
+					return localizedMessage;
+
 				// By prioritizing mod-level fluent bundles we prevent maps from overwriting string keys. We do not want to
 				// allow maps to change the UI nor any other strings not exposed to the map.
 				if (modFluentBundle.TryGetMessage(key, out var message, args))
 					return message;
+
+				if (localizedMapFluentBundle != null && localizedMapFluentBundle.TryGetMessage(key, out var localizedMapMessage, args))
+					return localizedMapMessage;
 
 				if (mapFluentBundle != null)
 					return mapFluentBundle.GetMessage(key, args);
@@ -70,9 +112,16 @@ namespace OpenRA
 		{
 			lock (SyncObject)
 			{
+				// Try localized bundle first.
+				if (localizedFluentBundle != null && localizedFluentBundle.TryGetMessage(key, out message, args))
+					return true;
+
 				// By prioritizing mod-level bundle we prevent maps from overwriting string keys. We do not want to
 				// allow maps to change the UI nor any other strings not exposed to the map.
 				if (modFluentBundle.TryGetMessage(key, out message, args))
+					return true;
+
+				if (localizedMapFluentBundle != null && localizedMapFluentBundle.TryGetMessage(key, out message, args))
 					return true;
 
 				if (mapFluentBundle != null && mapFluentBundle.TryGetMessage(key, out message, args))
@@ -87,6 +136,9 @@ namespace OpenRA
 		{
 			lock (SyncObject)
 			{
+				if (localizedFluentBundle != null && localizedFluentBundle.TryGetMessage(key, out message, args))
+					return true;
+
 				return modFluentBundle.TryGetMessage(key, out message, args);
 			}
 		}
