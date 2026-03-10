@@ -103,6 +103,15 @@ android:
 android-logs:
 	@adb logcat --pid=$$(adb shell pidof -s com.bigbangit.openra.android)
 
+install-android:
+	$(eval APK := $(shell ls -t $(OUTPUTDIR)/OpenRA-Android-*.apk 2>/dev/null | head -1))
+	@[ -n "$(APK)" ] || { echo "No APK found in $(OUTPUTDIR). Run 'make android' first."; exit 1; }
+	@echo "Installing $(APK)..."
+	@adb install "$(APK)"
+
+clean-build-cache:
+	@$(RM_RF) ./.build-cache
+
 
 # Deleting the intermediate / output directories ensures the build directory is actually clean
 clean:
@@ -185,6 +194,9 @@ help:
 	@echo 'to build the Android APK (or AAB), run:'
 	@echo '  make android'
 	@echo
+	@echo 'to clear the Android native library build cache, run:'
+	@echo '  make clean-build-cache'
+	@echo
 	@echo 'to check the official mods for erroneous yaml files, run:'
 	@echo '  make [TREAT_WARNINGS_AS_ERRORS=false] test'
 	@echo
@@ -213,4 +225,4 @@ help:
 
 .SUFFIXES:
 
-.PHONY: all android android-logs clean check check-scripts test version install install-linux-shortcuts install-linux-appdata install-man help
+.PHONY: all android android-logs install-android clean clean-build-cache check check-scripts test version install install-linux-shortcuts install-linux-appdata install-man help
