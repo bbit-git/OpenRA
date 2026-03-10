@@ -319,8 +319,21 @@ namespace OpenRA.Mods.Common.Widgets
 			}
 
 			var gs = Game.Settings.Game;
-			var scrollButton = gs.MouseControlStyle == MouseControlStyle.Classic ^ gs.UseAlternateScrollButton ? MouseButton.Right : MouseButton.Middle;
-			var scrollType = mi.Button.HasFlag(scrollButton) ? gs.MouseScroll : MouseScrollType.Disabled;
+
+			// Touch scheme always uses Middle for camera pan (two-finger gesture) and Standard scroll.
+			MouseButton scrollButton;
+			MouseScrollType scrollType;
+			if (gs.MouseControlStyle == MouseControlStyle.Touch)
+			{
+				scrollButton = MouseButton.Middle;
+				scrollType = mi.Button.HasFlag(scrollButton) ? MouseScrollType.Standard : MouseScrollType.Disabled;
+			}
+			else
+			{
+				scrollButton = gs.MouseControlStyle == MouseControlStyle.Classic ^ gs.UseAlternateScrollButton
+					? MouseButton.Right : MouseButton.Middle;
+				scrollType = mi.Button.HasFlag(scrollButton) ? gs.MouseScroll : MouseScrollType.Disabled;
+			}
 
 			if (scrollType == MouseScrollType.Disabled)
 				return IsJoystickScrolling || isStandardScrolling;

@@ -20,7 +20,7 @@ using OpenRA.Primitives;
 
 namespace OpenRA
 {
-	public enum MouseControlStyle { Classic, Modern, OtherRTS }
+	public enum MouseControlStyle { Classic, Modern, OtherRTS, Touch }
 	public enum MouseScrollType { Disabled, Standard, Inverted, Joystick }
 	public enum StatusBarsType { Standard, DamageShow, AlwaysShow }
 	public enum TargetLinesType { Disabled, Manual, Automatic }
@@ -333,6 +333,8 @@ namespace OpenRA
 
 		public bool UseAlternateScrollButton = false;
 
+		public int TouchLongPressMs = 400;
+
 		public bool HideReplayChat = false;
 
 		public StatusBarsType StatusBars = StatusBarsType.Standard;
@@ -360,6 +362,8 @@ namespace OpenRA
 
 		public TextNotificationPoolFilters TextNotificationPoolFilters = TextNotificationPoolFilters.Feedback | TextNotificationPoolFilters.Transients;
 
+		public bool IsClassicStyle => MouseControlStyle == MouseControlStyle.Classic || MouseControlStyle == MouseControlStyle.Touch;
+
 		public MouseButton ResolveActionButton(MouseActionType actionType)
 		{
 			switch (actionType)
@@ -367,7 +371,7 @@ namespace OpenRA
 				case MouseActionType.ConfirmOrder:
 					return MouseControlStyle == MouseControlStyle.Modern ? MouseButton.Right : MouseButton.Left;
 				case MouseActionType.Contextual:
-					return MouseControlStyle == MouseControlStyle.Classic ? MouseButton.Left : MouseButton.Right;
+					return IsClassicStyle ? MouseButton.Left : MouseButton.Right;
 				default: return MouseButton.Left;
 			}
 		}

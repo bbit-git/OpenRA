@@ -23,7 +23,7 @@ namespace OpenRA.Mods.Common.Orders
 		protected OrderGenerator(World world)
 		{
 			gameSettings = Game.Settings.Game;
-			if (gameSettings.MouseControlStyle == MouseControlStyle.Classic)
+			if (gameSettings.IsClassicStyle)
 				world.Selection.Clear();
 		}
 
