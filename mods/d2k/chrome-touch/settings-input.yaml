@@ -57,6 +57,7 @@ Container@INPUT_PANEL:
 									Font: Small
 									Text: label-mouse-control-desc-touch-longpress
 				Container@TOUCH_SECTION:
+					Width: PARENT_WIDTH
 					Height: 73
 					Children:
 						Background@TOUCH_TAP_SECTION_HEADER:

@@ -1,0 +1,18 @@
+Container@PLAYER_WIDGETS:
+	Children:
+		Container@DESELECT_TOUCH:
+			Logic: CommandBarLogic
+			Width: WINDOW_WIDTH
+			Height: WINDOW_HEIGHT
+			Children:
+				RoundButton@DESELECT:
+					X: 12
+					Y: WINDOW_HEIGHT - 120
+					Width: 56
+					Height: 56
+					Text: X
+					Font: Bold
+					TextColor: C83232
+					VisualHeight: 0
+					TooltipText: button-deselect.tooltip
+					TooltipContainer: TOOLTIP_CONTAINER
