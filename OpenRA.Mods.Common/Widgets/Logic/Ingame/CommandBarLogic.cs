@@ -208,6 +208,13 @@ namespace OpenRA.Mods.Common.Widgets
 				};
 			}
 
+			var deselectButton = widget.GetOrNull<ButtonWidget>("DESELECT");
+			if (deselectButton != null)
+			{
+				deselectButton.IsDisabled = () => { UpdateStateIfNecessary(); return !world.Selection.Actors.Any(); };
+				deselectButton.OnClick = () => world.Selection.Clear();
+			}
+
 			var keyOverrides = widget.GetOrNull<LogicKeyListenerWidget>("MODIFIER_OVERRIDES");
 			if (keyOverrides != null)
 			{
