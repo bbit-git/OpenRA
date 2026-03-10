@@ -859,6 +859,85 @@ Test:
 				"MiniYaml.Merge, duplicate values found for the following keys: Child2: [Child2 (at test-filename:4),Child2 (at test-filename:5)]"));
 		}
 
+		[TestCase(TestName = "MergeOverlay preserves duplicate keys in existing nodes")]
+		public void TestMergeOverlayDuplicateKeys()
+		{
+			const string BaseYaml = @"
+Widget:
+	Children:
+		Container@ROW:
+			Child: A
+		Container@ROW:
+			Child: B
+		Container@ROW:
+			Child: C
+		Container@UNIQUE:
+			Child: D
+";
+
+			const string OverlayYaml = @"
+Widget:
+	Children:
+		Container@UNIQUE:
+			Extra: E
+";
+
+			var baseNodes = MiniYaml.FromString(BaseYaml, "base").ToList();
+			var overlayNodes = MiniYaml.FromString(OverlayYaml, "overlay").ToList();
+
+			var merged = MiniYaml.MergeOverlay(baseNodes[0], overlayNodes[0]);
+
+			// All three Container@ROW should be preserved
+			var children = merged.Value.NodeWithKey("Children").Value;
+			var rowNodes = children.Nodes.Where(n => n.Key == "Container@ROW").ToList();
+			Assert.That(rowNodes.Count, Is.EqualTo(3));
+			Assert.That(rowNodes[0].Value.NodeWithKey("Child").Value.Value, Is.EqualTo("A"));
+			Assert.That(rowNodes[1].Value.NodeWithKey("Child").Value.Value, Is.EqualTo("B"));
+			Assert.That(rowNodes[2].Value.NodeWithKey("Child").Value.Value, Is.EqualTo("C"));
+
+			// UNIQUE should be merged (not duplicated)
+			var uniqueNodes = children.Nodes.Where(n => n.Key == "Container@UNIQUE").ToList();
+			Assert.That(uniqueNodes.Count, Is.EqualTo(1));
+			Assert.That(uniqueNodes[0].Value.NodeWithKey("Child").Value.Value, Is.EqualTo("D"));
+			Assert.That(uniqueNodes[0].Value.NodeWithKey("Extra").Value.Value, Is.EqualTo("E"));
+		}
+
+		[TestCase(TestName = "MergeOverlay supports indexed key targeting with [%N]")]
+		public void TestMergeOverlayIndexedKey()
+		{
+			const string BaseYaml = @"
+Widget:
+	Children:
+		Container@ROW:
+			Child: A
+		Container@ROW:
+			Child: B
+		Container@ROW:
+			Child: C
+";
+
+			const string OverlayYaml = @"
+Widget:
+	Children:
+		Container@ROW[%1]:
+			Extra: X
+";
+
+			var baseNodes = MiniYaml.FromString(BaseYaml, "base").ToList();
+			var overlayNodes = MiniYaml.FromString(OverlayYaml, "overlay").ToList();
+
+			var merged = MiniYaml.MergeOverlay(baseNodes[0], overlayNodes[0]);
+
+			var children = merged.Value.NodeWithKey("Children").Value;
+			var rowNodes = children.Nodes.Where(n => n.Key == "Container@ROW").ToList();
+			Assert.That(rowNodes.Count, Is.EqualTo(3));
+
+			// Only the second ROW (index 1) should have the Extra node
+			Assert.That(rowNodes[0].Value.NodeWithKeyOrDefault("Extra"), Is.Null);
+			Assert.That(rowNodes[1].Value.NodeWithKey("Extra").Value.Value, Is.EqualTo("X"));
+			Assert.That(rowNodes[2].Value.NodeWithKeyOrDefault("Extra"), Is.Null);
+		}
+
 		[TestCase(TestName = "Merging may be done on yaml that was not sanitised from comments.")]
 		public void TestMergeComments()
 		{

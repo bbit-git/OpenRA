@@ -398,6 +398,31 @@ namespace OpenRA
 			return FromLines(text.Split(["\r\n", "\n"], StringSplitOptions.None).Select(s => s.AsMemory()), name, discardCommentsAndWhitespace, stringPool);
 		}
 
+		/// <summary>
+		/// Merges an overlay node into an existing node without duplicate-key
+		/// validation. Used by the widget overlay system where base chrome
+		/// files may contain duplicate keys (e.g. Container@ROW).
+		/// Supports [%N] index syntax in overlay keys for targeting specific
+		/// instances of duplicate-keyed nodes.
+		/// </summary>
+		public static MiniYamlNode MergeOverlay(MiniYamlNode existing, MiniYamlNode overlay)
+		{
+			var value = MergeOverlayPartial(existing.Value, overlay.Value);
+			return existing.WithValue(value);
+		}
+
+		static MiniYaml MergeOverlayPartial(MiniYaml existingNodes, MiniYaml overrideNodes)
+		{
+			if (existingNodes == null)
+				return overrideNodes;
+
+			if (overrideNodes == null)
+				return existingNodes;
+
+			return new MiniYaml(overrideNodes.Value ?? existingNodes.Value,
+				MergeNodesPartial(existingNodes.Nodes, overrideNodes.Nodes, MergeOverlayPartial));
+		}
+
 		public static List<MiniYamlNode> Merge(IEnumerable<IEnumerable<MiniYamlNode>> sources)
 		{
 			var sourcesList = sources.ToList();
@@ -587,7 +612,31 @@ namespace OpenRA
 			return new MiniYaml(overrideNodes.Value ?? existingNodes.Value, MergePartial(existingNodes.Nodes, overrideNodes.Nodes));
 		}
 
+		/// <summary>
+		/// Parses an indexed key like "Container@ROW[%2]" into ("Container@ROW", 2).
+		/// Returns -1 for the index if the key has no index suffix.
+		/// </summary>
+		static (string BaseKey, int Index) ParseIndexedKey(string key)
+		{
+			if (key.Length > 4 && key[^1] == ']')
+			{
+				var bracketStart = key.LastIndexOf("[%", StringComparison.Ordinal);
+				if (bracketStart >= 0 && int.TryParse(key.AsSpan(bracketStart + 2, key.Length - bracketStart - 3), out var index))
+					return (key[..bracketStart], index);
+			}
+
+			return (key, -1);
+		}
+
 		static IReadOnlyCollection<MiniYamlNode> MergePartial(IReadOnlyCollection<MiniYamlNode> existingNodes, IReadOnlyCollection<MiniYamlNode> overrideNodes)
+		{
+			return MergeNodesPartial(existingNodes, overrideNodes, MergePartial);
+		}
+
+		static IReadOnlyCollection<MiniYamlNode> MergeNodesPartial(
+			IReadOnlyCollection<MiniYamlNode> existingNodes,
+			IReadOnlyCollection<MiniYamlNode> overrideNodes,
+			Func<MiniYaml, MiniYaml, MiniYaml> mergeValues)
 		{
 			if (existingNodes.Count == 0)
 				return overrideNodes;
@@ -597,6 +646,26 @@ namespace OpenRA
 
 			var ret = new List<MiniYamlNode>(existingNodes.Count + overrideNodes.Count);
 			var plainKeys = new HashSet<string>(existingNodes.Count + overrideNodes.Count);
+
+			// Detect keys that appear more than once in existing nodes.
+			// These are preserved in order without merging (e.g. multiple
+			// Container@ROW entries in widget layout files).
+			// Override files can target specific instances using [%N] syntax.
+			HashSet<string> existingDuplicateKeys = null;
+			{
+				HashSet<string> seen = null;
+				foreach (var node in existingNodes)
+				{
+					if (node.Key == null || node.Key.StartsWith('-'))
+						continue;
+					seen ??= new HashSet<string>(existingNodes.Count);
+					if (!seen.Add(node.Key))
+					{
+						existingDuplicateKeys ??= [];
+						existingDuplicateKeys.Add(node.Key);
+					}
+				}
+			}
 
 			foreach (var node in existingNodes)
 				MergeNode(node);
@@ -611,6 +680,35 @@ namespace OpenRA
 				// Append Removal nodes to the result.
 				// Therefore: we know the remainder of the method deals with a plain node.
 				if (node.Key.StartsWith('-'))
+				{
+					ret.Add(node);
+					return;
+				}
+
+				// Index-based override: "Container@ROW[%0]" targets the
+				// first Container@ROW in existing nodes. The [%N] suffix
+				// is stripped after matching so the merged result uses the
+				// original key name.
+				var (baseKey, targetIndex) = ParseIndexedKey(node.Key);
+				if (targetIndex >= 0)
+				{
+					var count = 0;
+					for (var i = 0; i < ret.Count; i++)
+					{
+						if (ret[i].Key == baseKey && count++ == targetIndex)
+						{
+							ret[i] = ret[i].WithValue(mergeValues(ret[i].Value, node.Value));
+							return;
+						}
+					}
+
+					return;
+				}
+
+				// Keys that appear multiple times in existing nodes are
+				// preserved without merging — they represent distinct
+				// sibling elements that share a type name.
+				if (existingDuplicateKeys != null && existingDuplicateKeys.Contains(node.Key))
 				{
 					ret.Add(node);
 					return;
@@ -636,7 +734,7 @@ namespace OpenRA
 
 				// A previous node is present with no intervening Removal.
 				// We should merge the new one into it, in place.
-				ret[previousNodeIndex] = node.WithValue(MergePartial(ret[previousNodeIndex].Value, node.Value));
+				ret[previousNodeIndex] = node.WithValue(mergeValues(ret[previousNodeIndex].Value, node.Value));
 			}
 
 			return ret;
