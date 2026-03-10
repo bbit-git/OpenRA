@@ -12,6 +12,7 @@
 using System;
 using System.Runtime.InteropServices;
 using System.Text;
+using OpenRA.Widgets;
 using SDL2;
 
 namespace OpenRA.Platforms.SDL2
@@ -321,6 +322,7 @@ namespace OpenRA.Platforms.SDL2
 			if (Platform.CurrentPlatform == PlatformType.Android)
 			{
 				touchRecognizer.LongPressMs = Game.Settings.Game.TouchLongPressMs;
+				touchRecognizer.LongTapIsRightClick ??= pos => Ui.Root.IsLongTapRightClickAt(pos);
 				touchRecognizer.ProcessTimers(device, inputHandler, mods);
 			}
 

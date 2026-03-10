@@ -19,6 +19,7 @@ namespace OpenRA.Platforms.SDL2
 		enum State { Idle, WaitingForGesture, LongPressDrag, TwoFingerActive, Cancelled }
 
 		public int LongPressMs = 400;
+		public Func<int2, bool> LongTapIsRightClick;
 		const int TapMaxMovePx = 15;
 		const int DragThresholdPx = 15;
 		const float PinchZoomScale = 0.04f;
@@ -38,6 +39,7 @@ namespace OpenRA.Platforms.SDL2
 		// Two-finger state
 		int2 prevMidpoint;
 		float prevDistance;
+		float accumulatedScroll;
 
 		// Long-press timer
 		long fingerDownTicks;
@@ -224,14 +226,16 @@ namespace OpenRA.Platforms.SDL2
 					if (panDelta.X != 0 || panDelta.Y != 0)
 						Emit(inputHandler, MouseInputEvent.Move, MouseButton.Middle, newMidpoint, panDelta, mods);
 
-					// Pinch zoom: emit Scroll event
+					// Pinch zoom: accumulate fractional scroll delta to avoid losing small per-frame movements
 					var distanceDelta = newDistance - prevDistance;
 					if (Math.Abs(distanceDelta) > 1f)
+						accumulatedScroll += distanceDelta * PinchZoomScale;
+					var scrollDelta = (int)Math.Round(accumulatedScroll);
+					if (scrollDelta != 0)
 					{
-						var scrollDelta = (int)Math.Round(distanceDelta * PinchZoomScale);
-						if (scrollDelta != 0)
-							Emit(inputHandler, MouseInputEvent.Scroll, MouseButton.None, newMidpoint,
-								new int2(0, scrollDelta), mods);
+						Emit(inputHandler, MouseInputEvent.Scroll, MouseButton.None, newMidpoint,
+							new int2(0, scrollDelta), mods);
+						accumulatedScroll -= scrollDelta;
 					}
 
 					prevMidpoint = newMidpoint;
@@ -249,6 +253,7 @@ namespace OpenRA.Platforms.SDL2
 		{
 			prevMidpoint = Midpoint(finger1Pos, finger2Pos);
 			prevDistance = Distance(finger1Pos, finger2Pos);
+			accumulatedScroll = 0f;
 
 			// Emit a Move first to update Viewport.LastMousePos to the midpoint,
 			// preventing a camera jump on the first pan frame.
@@ -267,9 +272,19 @@ namespace OpenRA.Platforms.SDL2
 
 			if (elapsed >= LongPressMs && moved < TapMaxMovePx)
 			{
-				// Long-press detected - begin box selection drag
-				Emit(inputHandler, MouseInputEvent.Down, MouseButton.Left, finger1Start, int2.Zero, mods);
-				state = State.LongPressDrag;
+				if (LongTapIsRightClick?.Invoke(finger1Start) == true)
+				{
+					// Long-tap over a widget that wants right-click (e.g. production cancel)
+					Emit(inputHandler, MouseInputEvent.Down, MouseButton.Right, finger1Start, int2.Zero, mods);
+					Emit(inputHandler, MouseInputEvent.Up, MouseButton.Right, finger1Start, int2.Zero, mods);
+					state = State.Cancelled;
+				}
+				else
+				{
+					// Long-press detected - begin box selection drag
+					Emit(inputHandler, MouseInputEvent.Down, MouseButton.Left, finger1Start, int2.Zero, mods);
+					state = State.LongPressDrag;
+				}
 			}
 		}
 	}

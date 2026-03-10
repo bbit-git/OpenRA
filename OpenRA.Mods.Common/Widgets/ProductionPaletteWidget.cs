@@ -38,7 +38,7 @@ namespace OpenRA.Mods.Common.Widgets
 		public ProductionQueue ProductionQueue;
 	}
 
-	public class ProductionPaletteWidget : Widget
+	public class ProductionPaletteWidget : Widget, ILongTapRightClick
 	{
 		public enum ReadyTextStyleOptions { Solid, AlternatingColor, Blinking }
 		public readonly ReadyTextStyleOptions ReadyTextStyle = ReadyTextStyleOptions.AlternatingColor;
