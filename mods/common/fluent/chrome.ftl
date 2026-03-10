@@ -325,6 +325,9 @@ button-command-bar-queue-orders =
     Left-click icon then give commands in the game world.
     Hold <(Shift)> to activate temporarily while commanding units.
 
+button-deselect =
+    .tooltip = Deselect All
+
 button-stance-bar-attackanything =
     .tooltip = Attack Anything Stance
     .tooltipdesc =
