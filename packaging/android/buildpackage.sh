@@ -163,7 +163,6 @@ if [ "${NEED_NATIVE}" = true ]; then
 		# SDL2
 		echo "Building SDL2 for ${ABI}..."
 		BUILD_DIR="${CACHE_DIR}/build-${ABI}"
-		rm -rf "${BUILD_DIR}"
 		cmake -S "${CACHE_DIR}/${SDL2_DIR}" -B "${BUILD_DIR}" \
 			-G Ninja \
 			-DCMAKE_TOOLCHAIN_FILE="${ANDROID_NDK}/build/cmake/android.toolchain.cmake" \
@@ -181,7 +180,6 @@ if [ "${NEED_NATIVE}" = true ]; then
 		# FreeType
 		echo "Building FreeType for ${ABI}..."
 		FT_BUILD="${CACHE_DIR}/freetype-build-${ABI}"
-		rm -rf "${FT_BUILD}"
 		cmake -S "${CACHE_DIR}/${FREETYPE_DIR}" -B "${FT_BUILD}" \
 			-G Ninja \
 			-DCMAKE_TOOLCHAIN_FILE="${ANDROID_NDK}/build/cmake/android.toolchain.cmake" \
@@ -202,7 +200,6 @@ if [ "${NEED_NATIVE}" = true ]; then
 		# OpenAL Soft
 		echo "Building OpenAL Soft for ${ABI}..."
 		OAL_BUILD="${CACHE_DIR}/openal-build-${ABI}"
-		rm -rf "${OAL_BUILD}"
 		cmake -S "${CACHE_DIR}/${OPENAL_DIR}" -B "${OAL_BUILD}" \
 			-G Ninja \
 			-DCMAKE_TOOLCHAIN_FILE="${ANDROID_NDK}/build/cmake/android.toolchain.cmake" \
@@ -230,7 +227,6 @@ if [ "${NEED_NATIVE}" = true ]; then
 		LUA_CC="${ANDROID_NDK}/toolchains/llvm/prebuilt/linux-x86_64/bin/${LUA_TARGET}${ANDROID_API}-clang"
 		LUA_SRC="${CACHE_DIR}/${LUA_DIR}/src"
 		LUA_OBJ="${CACHE_DIR}/lua-obj-${ABI}"
-		rm -rf "${LUA_OBJ}"
 		mkdir -p "${LUA_OBJ}"
 		LUA_SRCS="lapi.c lcode.c ldebug.c ldo.c ldump.c lfunc.c lgc.c llex.c \
 			lmem.c lobject.c lopcodes.c lparser.c lstate.c lstring.c ltable.c ltm.c \
@@ -260,20 +256,32 @@ fi
 # sdl2.jar
 ###############################################################################
 
-echo "==> Recompiling sdl2.jar from Java sources..."
-JAVA_BUILD_TMP="$(mktemp -d)"
-trap 'rm -rf "${JAVA_BUILD_TMP}"' EXIT
+SDL2_JAR="${SRCDIR}/OpenRA.Platforms.Android/sdl2.jar"
+NEED_JAR=false
+if [ ! -f "${SDL2_JAR}" ]; then
+	NEED_JAR=true
+elif find "${SRCDIR}/OpenRA.Platforms.Android/java" -name "*.java" -newer "${SDL2_JAR}" | grep -q .; then
+	NEED_JAR=true
+fi
 
-ANDROID_JAR="$(ls -d "${ANDROID_SDK}/platforms/android-"*/android.jar 2>/dev/null | tail -1)"
-[ -f "${ANDROID_JAR}" ] || { echo >&2 "ERROR: android.jar not found under ${ANDROID_SDK}/platforms/."; exit 1; }
+if [ "${NEED_JAR}" = true ]; then
+	echo "==> Recompiling sdl2.jar from Java sources..."
+	JAVA_BUILD_TMP="$(mktemp -d)"
+	trap 'rm -rf "${JAVA_BUILD_TMP}"' EXIT
 
-"${JAVA_HOME}/bin/javac" -source 11 -target 11 \
-	-classpath "${ANDROID_JAR}" \
-	-d "${JAVA_BUILD_TMP}" \
-	$(find "${SRCDIR}/OpenRA.Platforms.Android/java" -name "*.java") \
-	2>&1 | grep -v '^\(warning\|Note\)' || true
+	ANDROID_JAR="$(ls -d "${ANDROID_SDK}/platforms/android-"*/android.jar 2>/dev/null | tail -1)"
+	[ -f "${ANDROID_JAR}" ] || { echo >&2 "ERROR: android.jar not found under ${ANDROID_SDK}/platforms/."; exit 1; }
 
-"${JAVA_HOME}/bin/jar" cf "${SRCDIR}/OpenRA.Platforms.Android/sdl2.jar" -C "${JAVA_BUILD_TMP}" .
+	"${JAVA_HOME}/bin/javac" -source 11 -target 11 \
+		-classpath "${ANDROID_JAR}" \
+		-d "${JAVA_BUILD_TMP}" \
+		$(find "${SRCDIR}/OpenRA.Platforms.Android/java" -name "*.java") \
+		2>&1 | grep -v '^\(warning\|Note\)' || true
+
+	"${JAVA_HOME}/bin/jar" cf "${SDL2_JAR}" -C "${JAVA_BUILD_TMP}" .
+else
+	echo "==> sdl2.jar is up to date, skipping."
+fi
 
 ###############################################################################
 # Signing
