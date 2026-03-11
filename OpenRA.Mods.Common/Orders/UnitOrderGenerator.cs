@@ -20,7 +20,8 @@ namespace OpenRA.Mods.Common.Orders
 {
 	public class UnitOrderGenerator : IOrderGenerator
 	{
-		static readonly int TouchRadius = Platform.CurrentPlatform == PlatformType.Android ? 24 : 0;
+		static readonly bool IsAndroid = Platform.CurrentPlatform == PlatformType.Android;
+		static readonly int TouchRadius = IsAndroid ? 24 : 0;
 
 		readonly string worldSelectCursor = ChromeMetrics.Get<string>("WorldSelectCursor");
 		readonly string worldDefaultCursor = ChromeMetrics.Get<string>("WorldDefaultCursor");
@@ -37,13 +38,38 @@ namespace OpenRA.Mods.Common.Orders
 
 		protected static Target TargetForInput(World world, CPos cell, int2 worldPixel, MouseInput mi)
 		{
-			var candidates = TouchRadius > 0
-				? world.ScreenMap.ActorsNearMouse(worldPixel, TouchRadius)
-				: world.ScreenMap.ActorsAtMouse(mi);
+			Actor actor;
+			if (!IsAndroid)
+				actor = world.ScreenMap.ActorsAtMouse(mi)
+					.Where(a => !a.Actor.IsDead && a.Actor.Info.HasTraitInfo<ITargetableInfo>() && !world.FogObscures(a.Actor))
+					.WithHighestSelectionPriority(worldPixel, mi.Modifiers);
+			else
+			{
+				// Android-specific workaround:
+				// keep forgiving touch hit-testing for initial selection and nearby enemy targeting,
+				// but keep friendly order placement precise once units are selected.
+				var hasSelection = world.Selection.Actors.Count != 0;
+				var candidates = hasSelection
+					? world.ScreenMap.ActorsAtMouse(mi)
+					: TouchRadius > 0
+						? world.ScreenMap.ActorsNearMouse(worldPixel, TouchRadius)
+						: world.ScreenMap.ActorsAtMouse(mi);
 
-			var actor = candidates
-				.Where(a => !a.Actor.IsDead && a.Actor.Info.HasTraitInfo<ITargetableInfo>() && !world.FogObscures(a.Actor))
-				.WithHighestSelectionPriority(worldPixel, mi.Modifiers);
+				actor = candidates
+					.Where(a => !a.Actor.IsDead && a.Actor.Info.HasTraitInfo<ITargetableInfo>() && !world.FogObscures(a.Actor))
+					.WithHighestSelectionPriority(worldPixel, mi.Modifiers);
+
+				if (actor == null && hasSelection && TouchRadius > 0)
+				{
+					actor = world.ScreenMap.ActorsNearMouse(worldPixel, TouchRadius)
+						.Where(a =>
+							!a.Actor.IsDead &&
+							a.Actor.Info.HasTraitInfo<ITargetableInfo>() &&
+							!world.FogObscures(a.Actor) &&
+							!a.Actor.Owner.IsAlliedWith(world.RenderPlayer))
+						.WithHighestSelectionPriority(worldPixel, mi.Modifiers);
+				}
+			}
 
 			if (actor != null)
 				return Target.FromActor(actor);
@@ -125,31 +151,59 @@ namespace OpenRA.Mods.Common.Orders
 		// Used for classic mouse orders, determines whether or not action at xy is move or select
 		public virtual bool InputOverridesSelection(World world, int2 xy, MouseInput mi)
 		{
-			var candidates = TouchRadius > 0
-				? world.ScreenMap.ActorsNearMouse(xy, TouchRadius)
-				: world.ScreenMap.ActorsAtMouse(xy);
+			Actor actor;
+			if (!IsAndroid)
+			{
+				actor = world.ScreenMap.ActorsAtMouse(xy)
+					.Where(a =>
+						!a.Actor.IsDead &&
+						a.Actor.Info.HasTraitInfo<ISelectableInfo>() &&
+						(a.Actor.Owner.IsAlliedWith(world.RenderPlayer) || !world.FogObscures(a.Actor)))
+					.WithHighestSelectionPriority(xy, mi.Modifiers);
+			}
+			else
+			{
+				// Required for GLES/SDL behavior on Android touch devices:
+				// once units are selected, near-taps should default to order placement instead of re-selection,
+				// but we keep touch-radius support for nearby enemies.
+				var hasSelection = world.Selection.Actors.Count != 0;
+				var candidates = hasSelection
+					? world.ScreenMap.ActorsAtMouse(xy)
+					: TouchRadius > 0
+						? world.ScreenMap.ActorsNearMouse(xy, TouchRadius)
+						: world.ScreenMap.ActorsAtMouse(xy);
 
-			var actor = candidates
-				.Where(a =>
-					!a.Actor.IsDead &&
-					a.Actor.Info.HasTraitInfo<ISelectableInfo>() &&
-					(a.Actor.Owner.IsAlliedWith(world.RenderPlayer) || !world.FogObscures(a.Actor)))
-				.WithHighestSelectionPriority(xy, mi.Modifiers);
+				actor = candidates
+					.Where(a =>
+						!a.Actor.IsDead &&
+						a.Actor.Info.HasTraitInfo<ISelectableInfo>() &&
+						(a.Actor.Owner.IsAlliedWith(world.RenderPlayer) || !world.FogObscures(a.Actor)))
+					.WithHighestSelectionPriority(xy, mi.Modifiers);
+
+				if (actor == null && hasSelection && TouchRadius > 0)
+				{
+					actor = world.ScreenMap.ActorsNearMouse(xy, TouchRadius)
+						.Where(a =>
+							!a.Actor.IsDead &&
+							a.Actor.Info.HasTraitInfo<ISelectableInfo>() &&
+							!a.Actor.Owner.IsAlliedWith(world.RenderPlayer) &&
+							!world.FogObscures(a.Actor))
+						.WithHighestSelectionPriority(xy, mi.Modifiers);
+				}
+			}
 
 			if (actor == null)
 				return true;
 
+			return OverridesSelectionForActor(world, actor, mi);
+		}
+
+		bool OverridesSelectionForActor(World world, Actor actor, MouseInput mi)
+		{
 			var target = Target.FromActor(actor);
 			var cell = world.Map.CellContaining(target.CenterPosition);
 			var actorsAt = world.ActorMap.GetActorsAt(cell).ToList();
-
-			var modifiers = TargetModifiers.None;
-			if (mi.Modifiers.HasModifier(Modifiers.Ctrl))
-				modifiers |= TargetModifiers.ForceAttack;
-			if (mi.Modifiers.HasModifier(Modifiers.Shift))
-				modifiers |= TargetModifiers.ForceQueue;
-			if (mi.Modifiers.HasModifier(Modifiers.Alt))
-				modifiers |= TargetModifiers.ForceMove;
+			var modifiers = TargetModifiersFromInput(mi);
 
 			foreach (var a in world.Selection.Actors)
 			{
@@ -159,6 +213,19 @@ namespace OpenRA.Mods.Common.Orders
 			}
 
 			return false;
+		}
+
+		static TargetModifiers TargetModifiersFromInput(MouseInput mi)
+		{
+			var modifiers = TargetModifiers.None;
+			if (mi.Modifiers.HasModifier(Modifiers.Ctrl))
+				modifiers |= TargetModifiers.ForceAttack;
+			if (mi.Modifiers.HasModifier(Modifiers.Shift))
+				modifiers |= TargetModifiers.ForceQueue;
+			if (mi.Modifiers.HasModifier(Modifiers.Alt))
+				modifiers |= TargetModifiers.ForceMove;
+
+			return modifiers;
 		}
 
 		public virtual void SelectionChanged(World world, IEnumerable<Actor> selected) { }
