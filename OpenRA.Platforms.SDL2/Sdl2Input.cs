@@ -10,6 +10,7 @@
 #endregion
 
 using System;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using OpenRA.Widgets;
@@ -21,6 +22,7 @@ namespace OpenRA.Platforms.SDL2
 	{
 		MouseButton lastButtonBits = MouseButton.None;
 		readonly TouchGestureRecognizer touchRecognizer = new();
+		static readonly FieldInfo GameOrderManagerField = typeof(Game).GetField("OrderManager", BindingFlags.NonPublic | BindingFlags.Static);
 
 		public static string GetClipboardText() { return SDL.SDL_GetClipboardText(); }
 		public static bool SetClipboardText(string text) { return SDL.SDL_SetClipboardText(text) == 0; }
@@ -122,6 +124,8 @@ namespace OpenRA.Platforms.SDL2
 					// Android app lifecycle: stop rendering before the surface is destroyed
 					case SDL.SDL_EventType.SDL_APP_WILLENTERBACKGROUND:
 						device.IsSuspended = true;
+						if (Platform.CurrentPlatform == PlatformType.Android)
+							Game.NotifyApplicationEnteringBackground();
 						break;
 
 					case SDL.SDL_EventType.SDL_APP_DIDENTERFOREGROUND:
@@ -136,6 +140,7 @@ namespace OpenRA.Platforms.SDL2
 						// Real mouse events (Bluetooth/USB) are still processed normally.
 						if (Platform.CurrentPlatform == PlatformType.Android && e.button.which == SDL.SDL_TOUCH_MOUSEID)
 							break;
+
 						// Mouse 1, Mouse 2 and Mouse 3 are handled as mouse inputs
 						// Mouse 4 and Mouse 5 are treated as (pseudo) keyboard inputs
 						if (e.button.button == SDL.SDL_BUTTON_LEFT ||
@@ -323,11 +328,50 @@ namespace OpenRA.Platforms.SDL2
 			{
 				touchRecognizer.LongPressMs = Game.Settings.Game.TouchLongPressMs;
 				touchRecognizer.LongTapIsRightClick ??= pos => Ui.Root.IsLongTapRightClickAt(pos);
+				touchRecognizer.LongTapShouldForceMove ??= IsUnitOrderMode;
+				touchRecognizer.SingleFingerDragMovesMouse ??= IsPlaceBuildingMode;
 				touchRecognizer.ProcessTimers(device, inputHandler, mods);
 			}
 
 			if (pendingMotion != null)
 				inputHandler.OnMouseInput(pendingMotion.Value);
+		}
+
+		static bool IsUnitOrderMode(int2 _)
+		{
+			return OrderGeneratorMatches("OpenRA.Mods.Common.Orders.UnitOrderGenerator");
+		}
+
+		static bool IsPlaceBuildingMode(int2 _)
+		{
+			return OrderGeneratorMatches("OpenRA.Mods.Common.Orders.PlaceBuildingOrderGenerator");
+		}
+
+		static bool OrderGeneratorMatches(string typeFullName)
+		{
+			var orderManager = GameOrderManagerField?.GetValue(null);
+			if (orderManager == null)
+				return false;
+
+			var world = GetMemberValue(orderManager, "World");
+			if (world == null)
+				return false;
+
+			var orderGenerator = GetMemberValue(world, "OrderGenerator");
+			if (orderGenerator == null)
+				return false;
+
+			for (var type = orderGenerator.GetType(); type != null; type = type.BaseType)
+				if (type.FullName == typeFullName)
+					return true;
+
+			return false;
+		}
+
+		static object GetMemberValue(object target, string memberName)
+		{
+			var type = target.GetType();
+			return type.GetProperty(memberName)?.GetValue(target) ?? type.GetField(memberName)?.GetValue(target);
 		}
 	}
 }
