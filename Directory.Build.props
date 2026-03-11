@@ -18,16 +18,28 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <TargetFrameworks>net8.0</TargetFrameworks>
-    <TargetFrameworks Condition="'$(AndroidBuild)' == 'true'">net8.0;net8.0-android34.0</TargetFrameworks>
+    <TargetFrameworks>net9.0</TargetFrameworks>
+    <TargetFrameworks Condition="'$(AndroidBuild)' == 'true'">net9.0-android35.0</TargetFrameworks>
   </PropertyGroup>
 
   <PropertyGroup>
-    <TargetPlatform Condition="$([MSBuild]::IsOsPlatform('Windows'))">win-x64</TargetPlatform>
-    <TargetPlatform Condition="$([MSBuild]::IsOsPlatform('Linux'))">linux-x64</TargetPlatform>
-    <TargetPlatform Condition="$([MSBuild]::IsOsPlatform('OSX'))">osx-x64</TargetPlatform>
     <TargetPlatform Condition="'$(RuntimeIdentifier)' == 'android-arm64'">android-arm64</TargetPlatform>
+    <TargetPlatform Condition="$([System.String]::Copy('$(TargetFramework)').Contains('-android'))">android</TargetPlatform>
+    <TargetPlatform Condition="'$(TargetPlatform)' == '' and $([MSBuild]::IsOsPlatform('Windows'))">win-x64</TargetPlatform>
+    <TargetPlatform Condition="'$(TargetPlatform)' == '' and $([MSBuild]::IsOsPlatform('Linux'))">linux-x64</TargetPlatform>
+    <TargetPlatform Condition="'$(TargetPlatform)' == '' and $([MSBuild]::IsOsPlatform('OSX'))">osx-x64</TargetPlatform>
   </PropertyGroup>
+
+  <ItemGroup Condition="$([System.String]::Copy('$(TargetFramework)').Contains('-android'))">
+    <!-- Android packages provide their own native libraries; exclude desktop config/native artifacts. -->
+    <Content Remove="$(NuGetPackageRoot)openra-eluant/**/lua51.so" />
+    <Content Remove="$(NuGetPackageRoot)openra-eluant/**/Eluant.dll.config" />
+    <Content Remove="$(NuGetPackageRoot)openra-sdl2-cs/**/SDL2.so" />
+    <Content Remove="$(NuGetPackageRoot)openra-sdl2-cs/**/SDL2-CS.dll.config" />
+    <Content Remove="$(NuGetPackageRoot)openra-openal-cs/**/soft_oal.so" />
+    <Content Remove="$(NuGetPackageRoot)openra-openal-cs/**/OpenAL-CS.dll.config" />
+    <Content Remove="$(NuGetPackageRoot)openra-freetype6/**/freetype6.so" />
+  </ItemGroup>
 
 
   <PropertyGroup Condition="'$(Configuration)' == 'Debug'">

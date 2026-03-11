@@ -1,13 +1,13 @@
 # Android packaging
 
-Produces a signed fat APK (all ABIs) or an AAB for Play Store distribution.
+Produces a signed APK or AAB for Android distribution.
 
 ## Prerequisites
 
 | Tool | Minimum version | Notes |
 |---|---|---|
-| .NET SDK | 8.0 | `dotnet` in PATH |
-| Android SDK | API 34 | `ANDROID_SDK` env var |
+| .NET SDK | 9.0 | `DOTNET` env var or `~/.dotnet/dotnet` |
+| Android SDK | API 35 | `ANDROID_SDK` env var |
 | Android NDK | r26+ | `ANDROID_NDK` env var |
 | JDK | 17 | `JAVA_HOME` env var |
 | cmake | 3.22+ | for native library cross-compile |
@@ -27,12 +27,21 @@ packaging/android/buildpackage.sh
 # AAB (Play Store)
 ANDROID_PACKAGE_FORMAT=aab packaging/android/buildpackage.sh
 
+# Explicit dotnet binary if it is not on PATH
+DOTNET=$HOME/.dotnet/dotnet ANDROID_PACKAGE_FORMAT=aab packaging/android/buildpackage.sh
+
 # Custom output directory
 packaging/android/buildpackage.sh /path/to/dist
 ```
 
 Output is written to `dist/` (or the directory you pass) with a SHA-256
 checksum printed on completion.
+
+Current packaging target:
+- `net9.0-android35.0`
+- Release packaging runtime: `android-arm64`
+- Native libraries kept in repo for: `armeabi-v7a`, `arm64-v8a`, `x86_64`
+- Dotnet executable: `DOTNET` env var, `~/.dotnet/dotnet`, or `dotnet` from `PATH`
 
 ## Release signing
 
@@ -91,6 +100,7 @@ BUILD_NUMBER=1042 packaging/android/buildpackage.sh
 | `ANDROID_SDK` | `~/Android/Sdk` | Android SDK root |
 | `ANDROID_NDK` | `~/Android/Ndk` | Android NDK root |
 | `JAVA_HOME` | `/usr/lib/jvm/java-17-openjdk-amd64` | JDK root |
+| `DOTNET` | `~/.dotnet/dotnet` or `dotnet` from `PATH` | dotnet executable |
 | `ANDROID_PACKAGE_FORMAT` | `apk` | `apk` or `aab` |
 | `CONFIGURATION` | `Release` | MSBuild configuration |
 | `BUILD_NUMBER` | *(date-derived)* | Integer versionCode |
@@ -98,4 +108,3 @@ BUILD_NUMBER=1042 packaging/android/buildpackage.sh
 | `KEYSTORE_PASSWORD` | — | Keystore password |
 | `KEY_ALIAS` | — | Key alias |
 | `KEY_PASSWORD` | — | Key password |
-

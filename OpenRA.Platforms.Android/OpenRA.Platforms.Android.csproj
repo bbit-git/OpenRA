@@ -1,19 +1,26 @@
 <Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
-		<TargetFramework>net8.0-android34.0</TargetFramework>
+		<TargetFrameworks></TargetFrameworks>
+		<TargetFramework>net9.0-android35.0</TargetFramework>
 		<SupportedOSPlatformVersion>29</SupportedOSPlatformVersion>
 		<OutputType>Exe</OutputType>
 		<Nullable>disable</Nullable>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<UseMaui>false</UseMaui>
+		<UseAppHost>false</UseAppHost>
+		<RuntimeIdentifiers></RuntimeIdentifiers>
+		<!-- Android-specific workaround: package the managed runtime for arm64 only. -->
+		<RuntimeIdentifier Condition="'$(RuntimeIdentifier)'==''">android-arm64</RuntimeIdentifier>
+		<AndroidSupportedAbis>armeabi-v7a;arm64-v8a;x86_64</AndroidSupportedAbis>
+		<NoWarn>$(NoWarn);XA0036</NoWarn>
 		<!-- Android-specific -->
 		<AndroidApplication>true</AndroidApplication>
 		<AndroidGenerateApplicationPackage>true</AndroidGenerateApplicationPackage>
 		<!-- Default to fat APK for sideloading; pass -p:AndroidPackageFormat=aab for Play Store -->
 		<AndroidPackageFormat Condition="'$(AndroidPackageFormat)'==''">apk</AndroidPackageFormat>
-		<!-- All ABIs in one build; no -r flag needed -->
-		<AndroidSupportedAbis>armeabi-v7a;arm64-v8a;x86_64</AndroidSupportedAbis>
-		<!-- Version wired to VERSION file; override AndroidVersionCode with BUILD_NUMBER in CI -->
+		<!-- Version wired to VERSION file; override with VERSION_ANDROID if present -->
+		<AndroidVersionName Condition="'$(AndroidVersionName)'=='' AND Exists('../VERSION_ANDROID')">$([System.IO.File]::ReadAllLines('../VERSION_ANDROID')[0].Trim())</AndroidVersionName>
+		<AndroidVersionCode Condition="'$(AndroidVersionCode)'=='' AND Exists('../VERSION_ANDROID')">$([System.IO.File]::ReadAllLines('../VERSION_ANDROID')[1].Trim())</AndroidVersionCode>
 		<AndroidVersionName Condition="'$(AndroidVersionName)'==''">$([System.IO.File]::ReadAllText('../VERSION').Trim().Split('-')[0])</AndroidVersionName>
 		<AndroidVersionCode Condition="'$(AndroidVersionCode)'=='' AND '$(BUILD_NUMBER)'!=''">$(BUILD_NUMBER)</AndroidVersionCode>
 		<AndroidVersionCode Condition="'$(AndroidVersionCode)'==''">$([System.DateTime]::Now.ToString('yyMMddHH'))</AndroidVersionCode>
@@ -26,11 +33,11 @@
 		<OutputPath>obj/bin</OutputPath>
 	</PropertyGroup>
 	<ItemGroup>
-		<ProjectReference Include="..\OpenRA.Game\OpenRA.Game.csproj" />
-		<ProjectReference Include="..\OpenRA.Platforms.SDL2\OpenRA.Platforms.SDL2.csproj" />
-		<ProjectReference Include="..\OpenRA.Mods.Common\OpenRA.Mods.Common.csproj" />
-		<ProjectReference Include="..\OpenRA.Mods.Cnc\OpenRA.Mods.Cnc.csproj" />
-		<ProjectReference Include="..\OpenRA.Mods.D2k\OpenRA.Mods.D2k.csproj" />
+		<ProjectReference Include="..\OpenRA.Game\OpenRA.Game.csproj"/>
+		<ProjectReference Include="..\OpenRA.Platforms.SDL2\OpenRA.Platforms.SDL2.csproj"/>
+		<ProjectReference Include="..\OpenRA.Mods.Common\OpenRA.Mods.Common.csproj"/>
+		<ProjectReference Include="..\OpenRA.Mods.Cnc\OpenRA.Mods.Cnc.csproj"/>
+		<ProjectReference Include="..\OpenRA.Mods.D2k\OpenRA.Mods.D2k.csproj"/>
 	</ItemGroup>
 
 
