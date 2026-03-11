@@ -1,5 +1,21 @@
 Background@MISSIONBROWSER_PANEL:
 	Height: 480
 	Children:
+		Background@MISSION_BIN:
+			X: (PARENT_WIDTH - WIDTH) / 2
+			Y: 50
+			Width: 482
+			Height: 362
+			Children:
+				VideoPlayer@MISSION_VIDEO:
+					X: 1
+					Y: 1
+					Width: 480
+					Height: 360
+
 		ScrollPanel@MISSION_LIST:
 			Height: 370
+		Container@MISSION_INFO:
+			Children:
+				Container@MISSION_DETAIL:
+					Height: PARENT_HEIGHT - 335
