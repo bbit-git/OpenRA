@@ -19,6 +19,11 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 		public VersionLabelLogic(LabelWidget widget, ModData modData)
 		{
 			var versionText = modData.Manifest.Metadata.Version;
+#if ANDROID
+			if (!string.IsNullOrEmpty(Platform.DisplayVersion))
+				versionText += " (Android " + Platform.DisplayVersion + ")";
+#endif
+
 			widget.GetText = () => versionText;
 		}
 	}

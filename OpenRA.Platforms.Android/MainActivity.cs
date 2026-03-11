@@ -3,6 +3,7 @@ using Android.Content;
 using Android.Content.PM;
 using Android.Content.Res;
 using Android.OS;
+using OpenRA;
 
 // Application-level icon/label attributes
 [assembly: Application(Label = "@string/app_name", Icon = "@mipmap/ic_launcher", RoundIcon = "@mipmap/ic_launcher")]
@@ -70,6 +71,11 @@ namespace OpenRA.Platforms.Android
 				// Register battery metrics provider before the game loop starts.
 				OpenRA.Support.BatteryMetrics.Reset();
 				OpenRA.Support.BatteryMetrics.SetProvider(new AndroidBatteryMetrics(this));
+
+#if ANDROID
+				var packageInfo = PackageManager.GetPackageInfo(PackageName, 0);
+				Platform.DisplayVersion = packageInfo.VersionName;
+#endif
 
 				var modToLaunch = string.IsNullOrWhiteSpace(selectedMod) ? "ra" : selectedMod;
 				var args = new[]

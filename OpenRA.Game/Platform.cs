@@ -24,6 +24,9 @@ namespace OpenRA
 	{
 		public static PlatformType CurrentPlatform => LazyCurrentPlatform.Value;
 		public static Architecture CurrentArchitecture => RuntimeInformation.ProcessArchitecture;
+#if ANDROID
+		public static string DisplayVersion { get; set; }
+#endif
 		public static readonly Guid SessionGUID = Guid.NewGuid();
 
 		static readonly Lazy<PlatformType> LazyCurrentPlatform = Exts.Lazy(GetCurrentPlatform);
@@ -44,8 +47,7 @@ namespace OpenRA
 
 #if ANDROID
 			return PlatformType.Android;
-#endif
-
+#else
 			try
 			{
 				var psi = new ProcessStartInfo("uname", "-s")
@@ -64,6 +66,7 @@ namespace OpenRA
 			catch { }
 
 			return PlatformType.Unknown;
+#endif
 		}
 
 		public static string RuntimeVersion => $".NET CLR {Environment.Version}";
