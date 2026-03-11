@@ -6,7 +6,7 @@ Container@PLAYER_WIDGETS:
 			Height: WINDOW_HEIGHT
 			Children:
 				RoundButton@DESELECT:
-					X: 8
+					X: 12
 					Y: WINDOW_HEIGHT - 100
 					Width: 48
 					Height: 48

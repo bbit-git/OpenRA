@@ -6,13 +6,15 @@ Container@PLAYER_WIDGETS:
 			Height: WINDOW_HEIGHT
 			Children:
 				RoundButton@DESELECT:
-					X: 12
-					Y: WINDOW_HEIGHT - 120
-					Width: 56
-					Height: 56
-					Text: X
-					Font: Bold
-					TextColor: C83232
+					X: 4
+					Y: WINDOW_HEIGHT - 100
+					Width: 48
+					Height: 48
+					DrawCircularChrome: false
+					DrawSelectionOutlineIcon: true
+					SelectionOutlineColor: FFFFFF
+					SelectionOutlinePadding: 12
+					SelectionOutlineDisabledOpacity: 0.2
 					VisualHeight: 0
 					TooltipText: button-deselect.tooltip
 					TooltipContainer: TOOLTIP_CONTAINER
