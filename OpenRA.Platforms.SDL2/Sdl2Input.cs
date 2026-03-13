@@ -329,6 +329,7 @@ namespace OpenRA.Platforms.SDL2
 				touchRecognizer.LongPressMs = Game.Settings.Game.TouchLongPressMs;
 				touchRecognizer.LongTapIsRightClick ??= pos => Ui.Root.IsLongTapRightClickAt(pos);
 				touchRecognizer.LongTapShouldForceMove ??= IsUnitOrderMode;
+				touchRecognizer.LongPressDragStartsLeftClick ??= pos => Ui.Root.IsLongPressDragAt(pos);
 				touchRecognizer.SingleFingerDragMovesMouse ??= IsPlaceBuildingMode;
 				touchRecognizer.ProcessTimers(device, inputHandler, mods);
 			}
