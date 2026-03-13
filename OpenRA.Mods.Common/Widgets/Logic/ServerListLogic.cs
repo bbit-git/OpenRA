@@ -235,9 +235,11 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 			progressText.GetText = ProgressLabelText;
 
 			var gs = Game.Settings.Game;
+			NormalizeFilters(gs);
 			void ToggleFilterFlag(MPGameFilters f)
 			{
 				gs.MPGameFilters ^= f;
+				NormalizeFilters(gs);
 				Game.Settings.Save();
 				RefreshServerList();
 			}
@@ -420,6 +422,22 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 			RefreshServerList();
 		}
 
+		static void NormalizeFilters(GameSettings gs)
+		{
+			const MPGameFilters visibleGameKinds =
+				MPGameFilters.Waiting |
+				MPGameFilters.Empty |
+				MPGameFilters.Protected |
+				MPGameFilters.Started;
+
+			if ((gs.MPGameFilters & visibleGameKinds) != 0)
+				return;
+
+			gs.MPGameFilters |= visibleGameKinds;
+			Log.Write("debug", "ServerList: restored default multiplayer filters");
+			Console.WriteLine("ServerList: restored default multiplayer filters");
+		}
+
 		string PlayerLabel(GameServer game)
 		{
 			var label = players.Update(game.Players);
@@ -453,11 +471,13 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 			{
 				List<GameServer> games = null;
 				activeQuery = true;
+				WriteServerListTrace($"querying {queryURL}");
 
 				try
 				{
 					var client = HttpClientFactory.Create();
 					var httpResponseMessage = await client.GetAsync(queryURL);
+					WriteServerListTrace($"response status {(int)httpResponseMessage.StatusCode} {httpResponseMessage.ReasonPhrase}");
 					var result = await httpResponseMessage.Content.ReadAsStreamAsync();
 
 					var yaml = MiniYaml.FromStream(result, queryURL);
@@ -475,11 +495,13 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 							// Ignore any invalid games advertised.
 						}
 					}
+
+					WriteServerListTrace($"parsed {games.Count} online entries");
 				}
 				catch (Exception e)
 				{
 					searchStatus = SearchStatus.Failed;
-					Log.Write("debug", $"Failed to query server list with exception: {e}");
+					WriteServerListTrace($"failed with exception {e}");
 				}
 
 				var lanGames = new List<GameServer>();
@@ -522,10 +544,19 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 				else if (groupedLanGames.Any())
 					games = groupedLanGames.ToList();
 
+				WriteServerListTrace($"total visible candidates before UI refresh {games?.Count ?? 0}, lan {groupedLanGames.Count()}");
+
 				Game.RunAfterTick(() => RefreshServerListInner(games));
 
 				activeQuery = false;
 			});
+		}
+
+		static void WriteServerListTrace(string message)
+		{
+			var line = $"ServerList: {message}";
+			Log.Write("debug", line);
+			Console.WriteLine(line);
 		}
 
 		int GroupSortOrder(GameServer testEntry)
@@ -652,7 +683,18 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 			List<Widget> rows = null;
 
 			if (games != null)
+			{
 				rows = LoadGameRows(games, out nextServerRow);
+				WriteServerListTrace($"ui row count after filters {rows.Count}");
+				if (rows.Count == 0 && ShouldAutoShowIncompatibleGames(games))
+				{
+					Game.Settings.Game.MPGameFilters |= MPGameFilters.Incompatible;
+					Game.Settings.Save();
+					WriteServerListTrace("enabled incompatible filter automatically for Android");
+					rows = LoadGameRows(games, out nextServerRow);
+					WriteServerListTrace($"ui row count after auto-show incompatible {rows.Count}");
+				}
+			}
 
 			Game.RunAfterTick(() =>
 			{
@@ -662,16 +704,19 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 				if (games == null)
 				{
 					searchStatus = SearchStatus.Failed;
+					WriteServerListTrace("ui refresh marked status Failed");
 					return;
 				}
 
 				if (rows.Count == 0)
 				{
 					searchStatus = SearchStatus.NoGames;
+					WriteServerListTrace("ui refresh marked status NoGames");
 					return;
 				}
 
 				searchStatus = SearchStatus.Hidden;
+				WriteServerListTrace("ui refresh marked status Hidden and adding rows");
 
 				// Search for any unknown maps
 				if (Game.Settings.Game.AllowDownloading)
@@ -683,13 +728,51 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 				nextServerRow?.OnClick();
 
 				playerCount = games.Sum(g => g.Players);
+				WriteServerListTrace($"ui player count {playerCount}");
 			});
+		}
+
+		bool ShouldAutoShowIncompatibleGames(List<GameServer> games)
+		{
+			if (!OperatingSystem.IsAndroid())
+				return false;
+
+			var filters = Game.Settings.Game.MPGameFilters;
+			if (filters.HasFlag(MPGameFilters.Incompatible))
+				return false;
+
+			// Android builds may lag the public desktop release cadence.
+			// If the master server returned games but every entry is hidden only because it is incompatible,
+			// prefer showing the disabled rows over leaving the multiplayer browser completely empty.
+			return games.Any(g => !FilteredOnlyByIncompatibleVersion(g));
+		}
+
+		bool FilteredOnlyByIncompatibleVersion(GameServer game)
+		{
+			if (game.IsCompatible)
+				return false;
+
+			var filters = Game.Settings.Game.MPGameFilters | MPGameFilters.Incompatible;
+			if (game.State == (int)ServerState.GameStarted && !filters.HasFlag(MPGameFilters.Started))
+				return false;
+
+			if (game.State == (int)ServerState.WaitingPlayers && !filters.HasFlag(MPGameFilters.Waiting) && game.Players + game.Spectators != 0)
+				return false;
+
+			if (game.Players + game.Spectators == 0 && !filters.HasFlag(MPGameFilters.Empty))
+				return false;
+
+			if (game.Protected && !filters.HasFlag(MPGameFilters.Protected))
+				return false;
+
+			return true;
 		}
 
 		List<Widget> LoadGameRows(List<GameServer> games, out ScrollItemWidget nextServerRow)
 		{
 			nextServerRow = null;
 			var rows = new List<Widget>();
+			var filteredCount = 0;
 			var mods = games.GroupBy(g => g.ModLabel)
 				.OrderByDescending(g => GroupSortOrder(g.First()))
 				.ThenByDescending(g => g.Count());
@@ -697,7 +780,10 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 			foreach (var modGames in mods)
 			{
 				if (modGames.All(Filtered))
+				{
+					filteredCount += modGames.Count();
 					continue;
+				}
 
 				var header = ScrollItemWidget.Setup(headerTemplate, () => false, () => { });
 
@@ -730,7 +816,10 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 					foreach (var game in modGamesByState.Key == 2 ? modGamesByState.OrderByDescending(g => g.Started) : modGamesByState.OrderByDescending(g => g.Players))
 					{
 						if (Filtered(game))
+						{
+							filteredCount++;
 							continue;
+						}
 
 						var canJoin = game.IsJoinable;
 						var item = ScrollItemWidget.Setup(serverTemplate, () => currentServer == game, () => SelectServer(game), () => onJoin(game));
@@ -818,6 +907,8 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 					}
 				}
 			}
+
+			WriteServerListTrace($"LoadGameRows kept {rows.Count} widgets and filtered out {filteredCount} games");
 
 			return rows;
 		}

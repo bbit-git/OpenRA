@@ -179,6 +179,12 @@ namespace OpenRA.Network
 			if (Game.ExternalMods.TryGetValue(externalKey, out var external) && external.Version == Version)
 				IsCompatible = true;
 
+			// Android and other single-binary packaging modes may not populate ExternalMods
+			// for the currently running built-in mod, but an exact internal mod/version match
+			// is still compatible for browsing and joining.
+			if (!IsCompatible && Game.Mods.TryGetValue(Mod, out var internalMod) && internalMod.Metadata.Version == Version)
+				IsCompatible = true;
+
 			// Games advertised using the old API used local mod metadata
 			if (string.IsNullOrEmpty(ModTitle))
 			{
