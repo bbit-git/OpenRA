@@ -9,6 +9,7 @@
  */
 #endregion
 
+using OpenRA.Mods.Common.Widgets;
 using OpenRA.Widgets;
 
 namespace OpenRA.Mods.Common.Widgets.Logic
@@ -21,7 +22,12 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 			var versionText = modData.Manifest.Metadata.Version;
 #if ANDROID
 			if (!string.IsNullOrEmpty(Platform.DisplayVersion))
-				versionText += " (Android " + Platform.DisplayVersion + ")";
+			{
+				// Android-specific workaround: show package metadata on a separate line
+				// so the engine version remains the primary compatibility indicator.
+				versionText += "\nAndroid " + Platform.DisplayVersion;
+				widget.VAlign = TextVAlign.Top;
+			}
 #endif
 
 			widget.GetText = () => versionText;

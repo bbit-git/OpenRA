@@ -23,13 +23,21 @@ namespace OpenRA.Support
 
 		public static HttpClient Create()
 		{
+			if (!UseManagedHandler)
+				return new HttpClient();
+
 			return new HttpClient(Handler.Value, false);
 		}
+
+		internal static bool UseManagedHandler => !OperatingSystem.IsAndroid();
 
 		static HttpMessageHandler GetHandler()
 		{
 			return new SocketsHttpHandler
 			{
+				// Android multiplayer/news/version-check requests use HTTPS.
+				// Let the platform-native handler integrate with the OS TLS/network stack there
+				// instead of forcing the managed sockets handler used on desktop platforms.
 				// https://github.com/dotnet/corefx/issues/26895
 				// https://github.com/dotnet/corefx/issues/26331
 				// https://github.com/dotnet/corefx/pull/26839
