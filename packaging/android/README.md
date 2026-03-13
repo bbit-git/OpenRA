@@ -86,8 +86,16 @@ updates cannot be published.
 `AndroidVersionName` is derived from the `VERSION` file (base version before
 the first `-`).
 
-`AndroidVersionCode` defaults to `yyMMddHH` (UTC build time). In CI, set
-`BUILD_NUMBER` to a monotonically increasing integer:
+`AndroidVersionCode` uses the short form `yyMMddB`, where `B` is the
+intra-day build digit. The default local fallback is `yyMMdd1`.
+
+For example:
+
+- `2603121` = 2026-03-12 build 1
+- `2603122` = 2026-03-12 build 2
+
+For CI or repeat uploads on the same day, set `BUILD_NUMBER` to the exact
+versionCode you want to publish:
 
 ```sh
 BUILD_NUMBER=1042 packaging/android/buildpackage.sh

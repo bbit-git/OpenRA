@@ -2,4 +2,5 @@
 <resources>
 <color name="launcher_background">#050607</color>
 <color name="launcher_text_secondary">#b0b4c2</color>
+<color name="launcher_text_footer">#6d7380</color>
 </resources>

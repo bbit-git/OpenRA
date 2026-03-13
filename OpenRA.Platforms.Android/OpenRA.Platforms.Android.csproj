@@ -18,12 +18,16 @@
 		<AndroidGenerateApplicationPackage>true</AndroidGenerateApplicationPackage>
 		<!-- Default to fat APK for sideloading; pass -p:AndroidPackageFormat=aab for Play Store -->
 		<AndroidPackageFormat Condition="'$(AndroidPackageFormat)'==''">apk</AndroidPackageFormat>
-		<!-- Version wired to VERSION file; override with VERSION_ANDROID if present -->
-		<AndroidVersionName Condition="'$(AndroidVersionName)'=='' AND Exists('../VERSION_ANDROID')">$([System.IO.File]::ReadAllLines('../VERSION_ANDROID')[0].Trim())</AndroidVersionName>
-		<AndroidVersionCode Condition="'$(AndroidVersionCode)'=='' AND Exists('../VERSION_ANDROID')">$([System.IO.File]::ReadAllLines('../VERSION_ANDROID')[1].Trim())</AndroidVersionCode>
-		<AndroidVersionName Condition="'$(AndroidVersionName)'==''">$([System.IO.File]::ReadAllText('../VERSION').Trim().Split('-')[0])</AndroidVersionName>
-		<AndroidVersionCode Condition="'$(AndroidVersionCode)'=='' AND '$(BUILD_NUMBER)'!=''">$(BUILD_NUMBER)</AndroidVersionCode>
-		<AndroidVersionCode Condition="'$(AndroidVersionCode)'==''">$([System.DateTime]::Now.ToString('yyMMddHH'))</AndroidVersionCode>
+		<!-- Version wired to VERSION file; override with VERSION_ANDROID if present.
+		     .NET Android manifest generation uses ApplicationDisplayVersion/ApplicationVersion. -->
+		<ApplicationDisplayVersion Condition="'$(ApplicationDisplayVersion)'=='' AND Exists('$(MSBuildProjectDirectory)/../VERSION_ANDROID')">$([System.IO.File]::ReadAllText('$(MSBuildProjectDirectory)/../VERSION_ANDROID').Trim().Split()[0])</ApplicationDisplayVersion>
+		<ApplicationVersion Condition="'$(ApplicationVersion)'=='' AND Exists('$(MSBuildProjectDirectory)/../VERSION_ANDROID')">$([System.IO.File]::ReadAllText('$(MSBuildProjectDirectory)/../VERSION_ANDROID').Trim().Split()[1])</ApplicationVersion>
+		<ApplicationDisplayVersion Condition="'$(ApplicationDisplayVersion)'==''">$([System.IO.File]::ReadAllText('$(MSBuildProjectDirectory)/../VERSION').Trim().Split('-')[0])</ApplicationDisplayVersion>
+		<ApplicationVersion Condition="'$(ApplicationVersion)'=='' AND '$(BUILD_NUMBER)'!=''">$(BUILD_NUMBER)</ApplicationVersion>
+		<!-- Android versionCode fallback: yyMMddB where B is the intra-day build digit.
+		     Default local builds use B=1; CI or release builds can override via BUILD_NUMBER
+		     or VERSION_ANDROID for subsequent same-day uploads. -->
+		<ApplicationVersion Condition="'$(ApplicationVersion)'==''">$([System.DateTime]::Now.ToString('yyMMdd'))1</ApplicationVersion>
 		<!-- Stability fixes for Mono on Android -->
 		<PublishTrimmed>false</PublishTrimmed>
 		<RunAOTCompilation>false</RunAOTCompilation>
@@ -47,6 +51,9 @@
 		     MainActivity can extend it directly. -->
 		<AndroidLibrary Include="sdl2.jar" Bind="true" />
 		<AndroidJavaSource Remove="java\**\*.java" />
+		<!-- Android-specific workaround: keep non-SDL Java glue in the normal Android build
+		     so it does not depend on the repacked SDL jar step. -->
+		<AndroidJavaSource Include="Java\**\*.java" />
 	</ItemGroup>
 
 
