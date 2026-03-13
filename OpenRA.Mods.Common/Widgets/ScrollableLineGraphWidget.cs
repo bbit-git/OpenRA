@@ -18,7 +18,7 @@ using OpenRA.Widgets;
 
 namespace OpenRA.Mods.Common.Widgets
 {
-	public class ScrollableLineGraphWidget : Widget
+	public class ScrollableLineGraphWidget : Widget, ILongPressDragTarget
 	{
 		protected readonly Ruleset ModRules;
 		public Func<IEnumerable<ScrollableLineGraphSeries>> GetSeries;
@@ -595,6 +595,11 @@ namespace OpenRA.Mods.Common.Widgets
 
 			if (rightPressed && !rightDisabled)
 				Scroll(-1, true);
+		}
+
+		public bool WantsLongPressDrag(int2 location)
+		{
+			return thumbRect.Width > 0 && thumbRect.Contains(location);
 		}
 	}
 

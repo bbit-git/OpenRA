@@ -21,6 +21,7 @@ namespace OpenRA.Platforms.SDL2
 		public int LongPressMs = 400;
 		public Func<int2, bool> LongTapIsRightClick;
 		public Func<int2, bool> LongTapShouldForceMove;
+		public Func<int2, bool> LongPressDragStartsLeftClick;
 		public Func<int2, bool> SingleFingerDragMovesMouse;
 		const int TapMaxMovePx = 15;
 		const int DragThresholdPx = 15;
@@ -55,6 +56,7 @@ namespace OpenRA.Platforms.SDL2
 		// Long-press timer
 		long fingerDownTicks;
 		bool longPressCanForceMove;
+		bool longPressCanStartLeftDrag;
 
 		static int2 FingerToScreen(SDL.SDL_TouchFingerEvent tfinger, Sdl2PlatformWindow device)
 		{
@@ -319,9 +321,9 @@ namespace OpenRA.Platforms.SDL2
 					var moved = Distance(finger1Start, finger1Pos);
 					if (moved > LongPressDragStartThresholdPx)
 					{
-						if (longPressCanForceMove)
+						if (longPressCanForceMove || longPressCanStartLeftDrag)
 						{
-							// Long-press drag starts box-selection with a tiny deadzone to keep selection responsive.
+							// Long-press drag starts a held left-button drag with a tiny deadzone to keep selection responsive.
 							Emit(inputHandler, MouseInputEvent.Down, MouseButton.Left, finger1Start, int2.Zero, mods);
 							Emit(inputHandler, MouseInputEvent.Move, MouseButton.Left, finger1Pos,
 								new int2(finger1Pos.X - finger1Start.X, finger1Pos.Y - finger1Start.Y), mods);
@@ -481,8 +483,9 @@ namespace OpenRA.Platforms.SDL2
 				}
 				else
 				{
-					// Long-press detected - arm either force-move tap (on release) or drag selection (on move).
+					// Long-press detected - arm either force-move tap (on release) or a held left-button drag (on move).
 					longPressCanForceMove = LongTapShouldForceMove?.Invoke(finger1Start) == true;
+					longPressCanStartLeftDrag = LongPressDragStartsLeftClick?.Invoke(finger1Start) == true;
 					state = State.LongPressArmed;
 				}
 			}

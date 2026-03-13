@@ -35,7 +35,7 @@ namespace OpenRA.Mods.Common.Widgets
 		Hidden
 	}
 
-	public class ScrollPanelWidget : Widget
+	public class ScrollPanelWidget : Widget, ILongPressDragTarget
 	{
 		readonly Ruleset modRules;
 		public int ScrollbarWidth = 24;
@@ -389,6 +389,21 @@ namespace OpenRA.Mods.Common.Widgets
 			}
 
 			return upPressed || downPressed || thumbPressed;
+		}
+
+		public bool WantsLongPressDrag(int2 location)
+		{
+			if (ScrollBar == ScrollBar.Hidden || ContentHeight <= RenderBounds.Height)
+				return false;
+
+			var rb = RenderBounds;
+			var scrollbarHeight = rb.Height - 2 * ScrollbarWidth;
+			var thumbHeight = Math.Max(MinimumThumbSize, scrollbarHeight * rb.Height / ContentHeight);
+			var thumbOrigin = rb.Y + ScrollbarWidth + (int)((scrollbarHeight - thumbHeight) * currentListOffset / (rb.Height - ContentHeight));
+			var thumbX = ScrollBar == ScrollBar.Left ? rb.X : rb.Right - ScrollbarWidth;
+			var longPressThumbRect = new Rectangle(thumbX, thumbOrigin, ScrollbarWidth, thumbHeight);
+
+			return longPressThumbRect.Contains(location);
 		}
 
 		IObservableCollection collection;

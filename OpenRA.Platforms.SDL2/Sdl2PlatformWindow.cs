@@ -22,6 +22,9 @@ namespace OpenRA.Platforms.SDL2
 {
 	sealed class Sdl2PlatformWindow : ThreadAffine, IPlatformWindow
 	{
+		internal const int AndroidMinLogicalWidth = 1040;
+		internal const int AndroidMinLogicalHeight = 512;
+
 		readonly Sdl2Input input;
 
 		public IGraphicsContext Context { get; }
@@ -233,21 +236,20 @@ namespace OpenRA.Platforms.SDL2
 						}
 						catch { }
 					}
-				}
-				else if (Platform.CurrentPlatform == PlatformType.Android)
-				{
-					if (SDL.SDL_GetDisplayDPI(videoDisplay, out var ddpi, out _, out _) == 0)
-						windowScale = ddpi / 160f;
+					}
+					else if (Platform.CurrentPlatform == PlatformType.Android)
+					{
+						if (SDL.SDL_GetDisplayDPI(videoDisplay, out var ddpi, out _, out _) == 0)
+							windowScale = ddpi / 160f;
 
-					// Android: cap scale so logical height is at least 512.
-					// Panels have a minimum height of ~480; a 512px floor ensures
-					// they fit with margins on low-density/small screens.
-					// Without this, panels can overflow or clip on devices where
-					// high DPI scaling would push the logical resolution too low.
-					var maxScale = display.h / 512f;
-					if (windowScale > maxScale)
-						windowScale = maxScale;
-				}
+						// Android: cap scale so logical UI size stays above the
+						// minimum chrome dimensions used by the largest touch layouts.
+						// Panels need ~512px of logical height, and the widest touch
+						// menu currently needs 1040px of logical width.
+						// Without this, panels can overflow or clip on devices where
+						// high DPI scaling would push the logical resolution too low.
+						windowScale = ClampAndroidWindowScale(windowScale, new Size(display.w, display.h));
+					}
 
 				Console.WriteLine($"Desktop resolution: {display.w}x{display.h}");
 				if (requestEffectiveWindowSize.Width == 0 && requestEffectiveWindowSize.Height == 0)
@@ -394,14 +396,36 @@ namespace OpenRA.Platforms.SDL2
 			if (Platform.CurrentPlatform == PlatformType.Android)
 			{
 				SDL.SDL_GL_GetDrawableSize(Window, out var dw, out var dh);
-				Console.WriteLine($"Android GL drawable: {dw}x{dh} (was surface {surfaceSize.Width}x{surfaceSize.Height})");
-				surfaceSize = new Size(dw, dh);
-				windowSize = new Size((int)(surfaceSize.Width / windowScale), (int)(surfaceSize.Height / windowScale));
-				Console.WriteLine($"Android final: surface={surfaceSize.Width}x{surfaceSize.Height} window={windowSize.Width}x{windowSize.Height} scale={windowScale:F2}");
-			}
+					Console.WriteLine($"Android GL drawable: {dw}x{dh} (was surface {surfaceSize.Width}x{surfaceSize.Height})");
+					surfaceSize = new Size(dw, dh);
+					windowSize = CalculateAndroidLogicalSize(surfaceSize, windowScale);
+					Console.WriteLine($"Android final: surface={surfaceSize.Width}x{surfaceSize.Height} window={windowSize.Width}x{windowSize.Height} scale={windowScale:F2}");
+				}
 
 			SDL.SDL_SetModState(SDL.SDL_Keymod.KMOD_NONE);
 			input = new Sdl2Input();
+		}
+
+		internal static float ClampAndroidWindowScale(float windowScale, Size displaySize)
+		{
+			var maxWidthScale = displaySize.Width / (float)AndroidMinLogicalWidth;
+			var maxHeightScale = displaySize.Height / (float)AndroidMinLogicalHeight;
+			var maxScale = Math.Min(maxWidthScale, maxHeightScale);
+			return Math.Min(windowScale, maxScale);
+		}
+
+		internal static Size CalculateAndroidLogicalSize(Size displaySize, float windowScale)
+		{
+			var logicalWidth = (int)(displaySize.Width / windowScale);
+			var logicalHeight = (int)(displaySize.Height / windowScale);
+
+			if ((logicalWidth & 1) != 0)
+				logicalWidth--;
+
+			if ((logicalHeight & 1) != 0)
+				logicalHeight--;
+
+			return new Size(logicalWidth, logicalHeight);
 		}
 
 		static byte[] DoublePixelData(byte[] data, Size size)

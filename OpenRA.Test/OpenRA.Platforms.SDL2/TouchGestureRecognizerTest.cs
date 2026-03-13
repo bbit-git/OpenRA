@@ -163,6 +163,42 @@ namespace OpenRA.Test.OpenRA.Platforms.SDL2
 		}
 
 		[Test]
+		public void LongPressThenSmallDragStartsHeldLeftDragWhenConfigured()
+		{
+			var recognizer = new TouchGestureRecognizer
+			{
+				LongPressMs = 10,
+				LongTapIsRightClick = _ => false,
+				LongTapShouldForceMove = _ => false,
+				LongPressDragStartsLeftClick = _ => true,
+			};
+
+			var input = new RecordingInputHandler();
+			var start = new int2(100, 100);
+			var drag = new int2(104, 102);
+
+			InvokeFingerDown(recognizer, 1, start, input, Modifiers.None);
+			FingerDownTicks.SetValue(recognizer, DateTime.Now.Ticks - TimeSpan.FromMilliseconds(50).Ticks);
+			recognizer.ProcessTimers(null, input, Modifiers.None);
+
+			InvokeFingerMotion(recognizer, 1, drag, input, Modifiers.None);
+			InvokeFingerUp(recognizer, 1, drag, input, Modifiers.None);
+
+			Assert.That(input.MouseInputs, Has.Count.EqualTo(3));
+			Assert.That(input.MouseInputs[0].Event, Is.EqualTo(MouseInputEvent.Down));
+			Assert.That(input.MouseInputs[0].Button, Is.EqualTo(MouseButton.Left));
+			Assert.That(input.MouseInputs[0].Location, Is.EqualTo(start));
+			Assert.That(input.MouseInputs[0].Modifiers, Is.EqualTo(Modifiers.None));
+			Assert.That(input.MouseInputs[1].Event, Is.EqualTo(MouseInputEvent.Move));
+			Assert.That(input.MouseInputs[1].Button, Is.EqualTo(MouseButton.Left));
+			Assert.That(input.MouseInputs[1].Location, Is.EqualTo(drag));
+			Assert.That(input.MouseInputs[1].Delta, Is.EqualTo(new int2(4, 2)));
+			Assert.That(input.MouseInputs[2].Event, Is.EqualTo(MouseInputEvent.Up));
+			Assert.That(input.MouseInputs[2].Button, Is.EqualTo(MouseButton.Left));
+			Assert.That(input.MouseInputs[2].Location, Is.EqualTo(drag));
+		}
+
+		[Test]
 		public void SecondFingerOnStationaryFirstStartsGroupSelection()
 		{
 			var recognizer = new TouchGestureRecognizer

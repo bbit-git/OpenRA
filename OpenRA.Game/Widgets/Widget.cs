@@ -210,6 +210,10 @@ namespace OpenRA.Widgets
 	}
 
 	public interface ILongTapRightClick { }
+	public interface ILongPressDragTarget
+	{
+		bool WantsLongPressDrag(int2 location);
+	}
 
 	public abstract class Widget
 	{
@@ -377,6 +381,18 @@ namespace OpenRA.Widgets
 					return true;
 
 			return this is ILongTapRightClick && EventBounds.Contains(location);
+		}
+
+		public bool IsLongPressDragAt(int2 location)
+		{
+			if (!IsVisible())
+				return false;
+
+			foreach (var child in Children)
+				if (child.IsLongPressDragAt(location))
+					return true;
+
+			return this is ILongPressDragTarget dragTarget && dragTarget.WantsLongPressDrag(location);
 		}
 
 		public bool HasMouseFocus => Ui.MouseFocusWidget == this;
