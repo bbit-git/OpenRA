@@ -3,45 +3,63 @@
 	android:layout_width="match_parent"
 	android:layout_height="match_parent"
 	android:orientation="vertical"
-	android:gravity="center_vertical"
 	android:paddingTop="20dp"
-	android:paddingBottom="20dp"
+	android:paddingBottom="8dp"
 	android:paddingStart="16dp"
 	android:paddingEnd="16dp"
 	android:background="@color/launcher_background">
-	<HorizontalScrollView
+	<LinearLayout
 		android:layout_width="match_parent"
-		android:layout_height="wrap_content"
-		android:fillViewport="true"
-		android:clipToPadding="false">
-		<LinearLayout
-			android:id="@+id/mod_icon_row"
-			android:layout_width="wrap_content"
+		android:layout_height="0dp"
+		android:layout_weight="1"
+		android:orientation="vertical"
+		android:gravity="center">
+		<HorizontalScrollView
+			android:layout_width="match_parent"
 			android:layout_height="wrap_content"
-			android:orientation="horizontal"
+			android:fillViewport="true"
+			android:clipToPadding="false">
+			<LinearLayout
+				android:id="@+id/mod_icon_row"
+				android:layout_width="wrap_content"
+				android:layout_height="wrap_content"
+				android:orientation="horizontal"
+				android:gravity="center"
+				android:paddingTop="12dp"
+				android:paddingBottom="12dp" />
+		</HorizontalScrollView>
+
+		<TextView
+			android:id="@+id/launcher_tagline"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:layout_marginTop="20dp"
 			android:gravity="center"
-			android:paddingTop="12dp"
-			android:paddingBottom="12dp" />
-	</HorizontalScrollView>
+			android:text="@string/launcher_tagline"
+			android:textColor="@color/launcher_text_secondary"
+			android:textSize="28sp"
+			android:textStyle="bold" />
+
+		<TextView
+			android:id="@+id/launcher_empty"
+			android:layout_width="match_parent"
+			android:layout_height="wrap_content"
+			android:text="@string/launcher_no_mods"
+			android:textColor="@color/launcher_text_secondary"
+			android:gravity="center"
+			android:layout_marginTop="24dp"
+			android:visibility="gone" />
+	</LinearLayout>
 
 	<TextView
-		android:id="@+id/launcher_tagline"
+		android:id="@+id/launcher_disclaimer"
 		android:layout_width="match_parent"
 		android:layout_height="wrap_content"
-		android:layout_marginTop="20dp"
+		android:layout_marginTop="12dp"
+		android:text="@string/launcher_disclaimer"
+		android:textColor="@color/launcher_text_footer"
+		android:textSize="11sp"
+		android:alpha="0.82"
 		android:gravity="center"
-		android:text="@string/launcher_tagline"
-		android:textColor="@color/launcher_text_secondary"
-		android:textSize="28sp"
-		android:textStyle="bold" />
-
-	<TextView
-		android:id="@+id/launcher_empty"
-		android:layout_width="match_parent"
-		android:layout_height="wrap_content"
-		android:text="@string/launcher_no_mods"
-		android:textColor="@color/launcher_text_secondary"
-		android:gravity="center"
-		android:layout_marginTop="24dp"
-		android:visibility="gone" />
+		android:maxWidth="720dp" />
 </LinearLayout>

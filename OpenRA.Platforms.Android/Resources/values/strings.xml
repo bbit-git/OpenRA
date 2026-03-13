@@ -5,4 +5,5 @@
 	<string name="launcher_tagline">Choose Your Destiny</string>
 	<string name="launcher_loading">Loading ...</string>
 	<string name="launcher_no_mods">No mods were found.</string>
+	<string name="launcher_disclaimer">Unofficial community project. OpenRA and all referenced game names and trademarks belong to their respective owners. Not affiliated with or endorsed by the original rights holders.</string>
 </resources>

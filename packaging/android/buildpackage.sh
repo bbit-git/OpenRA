@@ -7,7 +7,7 @@
 #   ANDROID_NDK            - path to Android NDK  (default: ~/Android/Ndk)
 #   JAVA_HOME              - path to JDK          (default: /usr/lib/jvm/java-17-openjdk-amd64)
 #   ANDROID_PACKAGE_FORMAT - apk (default) or aab
-#   BUILD_NUMBER           - integer versionCode for CI; derived from date if unset
+#   BUILD_NUMBER           - integer versionCode for CI; defaults to yyMMdd1 if unset
 #   KEYSTORE_FILE          - path to release keystore (release signing)
 #   KEYSTORE_PASSWORD      - keystore password
 #   KEY_ALIAS              - key alias inside keystore
@@ -327,10 +327,17 @@ fi
 # Version
 ###############################################################################
 
-VERSION_NAME="$(head -1 "${SRCDIR}/VERSION" | tr -d '[:space:]' | cut -d'-' -f1)"
-VERSION_ARGS=("-p:AndroidVersionName=${VERSION_NAME}")
+if [ -f "${SRCDIR}/VERSION_ANDROID" ]; then
+	# Android-specific workaround: prefer the package display version override
+	# when present so the installed app version matches the UI suffix.
+	VERSION_NAME="$(head -1 "${SRCDIR}/VERSION_ANDROID" | tr -d '[:space:]')"
+else
+	VERSION_NAME="$(head -1 "${SRCDIR}/VERSION" | tr -d '[:space:]' | cut -d'-' -f1)"
+fi
+
+VERSION_ARGS=("-p:ApplicationDisplayVersion=${VERSION_NAME}")
 if [ -n "${BUILD_NUMBER:-}" ]; then
-	VERSION_ARGS+=("-p:AndroidVersionCode=${BUILD_NUMBER}")
+	VERSION_ARGS+=("-p:ApplicationVersion=${BUILD_NUMBER}")
 fi
 
 ###############################################################################
