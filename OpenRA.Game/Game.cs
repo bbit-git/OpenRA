@@ -65,6 +65,7 @@ namespace OpenRA
 		static Benchmark benchmark = null;
 
 		public static event Action OnShellmapLoaded = () => { };
+		public static event Action OnApplicationEnteringBackground = () => { };
 
 		public static OrderManager JoinServer(ConnectionTarget endpoint, string password, bool recordReplay = true)
 		{
@@ -146,6 +147,11 @@ namespace OpenRA
 		public static void RemoteDirectConnect(ConnectionTarget endpoint)
 		{
 			OnRemoteDirectConnect(endpoint);
+		}
+
+		public static void NotifyApplicationEnteringBackground()
+		{
+			OnApplicationEnteringBackground();
 		}
 
 		// Hacky workaround for orderManager visibility

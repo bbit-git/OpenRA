@@ -7,7 +7,7 @@
 #   ANDROID_NDK            - path to Android NDK  (default: ~/Android/Ndk)
 #   JAVA_HOME              - path to JDK          (default: /usr/lib/jvm/java-17-openjdk-amd64)
 #   ANDROID_PACKAGE_FORMAT - apk (default) or aab
-#   BUILD_NUMBER           - integer versionCode for CI; derived from date if unset
+#   BUILD_NUMBER           - integer versionCode for CI; defaults to yyMMdd1 if unset
 #   KEYSTORE_FILE          - path to release keystore (release signing)
 #   KEYSTORE_PASSWORD      - keystore password
 #   KEY_ALIAS              - key alias inside keystore
@@ -28,6 +28,15 @@ ANDROID_NDK="${ANDROID_NDK:-${HOME}/Android/Ndk}"
 JAVA_HOME="${JAVA_HOME:-/usr/lib/jvm/java-17-openjdk-amd64}"
 ANDROID_PACKAGE_FORMAT="${ANDROID_PACKAGE_FORMAT:-apk}"
 CONFIGURATION="${CONFIGURATION:-Release}"
+DOTNET="${DOTNET:-}"
+
+if [ -z "${DOTNET}" ]; then
+	if [ -x "${HOME}/.dotnet/dotnet" ]; then
+		DOTNET="${HOME}/.dotnet/dotnet"
+	else
+		DOTNET="$(command -v dotnet || true)"
+	fi
+fi
 
 ###############################################################################
 # Prerequisites
@@ -37,7 +46,10 @@ require_cmd() {
 	command -v "$1" >/dev/null 2>&1 || { echo >&2 "ERROR: '$1' not found. $2"; exit 1; }
 }
 
-require_cmd dotnet "Install .NET 8 SDK."
+if [ ! -x "${DOTNET}" ]; then
+	echo >&2 "ERROR: dotnet SDK not found. Set DOTNET=/path/to/dotnet or install the .NET 9 SDK."
+	exit 1
+fi
 require_cmd cmake  "Install cmake (apt install cmake)."
 require_cmd ninja  "Install ninja-build (apt install ninja-build)."
 
@@ -315,10 +327,17 @@ fi
 # Version
 ###############################################################################
 
-VERSION_NAME="$(head -1 "${SRCDIR}/VERSION" | tr -d '[:space:]' | cut -d'-' -f1)"
-VERSION_ARGS=("-p:AndroidVersionName=${VERSION_NAME}")
+if [ -f "${SRCDIR}/VERSION_ANDROID" ]; then
+	# Android-specific workaround: prefer the package display version override
+	# when present so the installed app version matches the UI suffix.
+	VERSION_NAME="$(head -1 "${SRCDIR}/VERSION_ANDROID" | tr -d '[:space:]')"
+else
+	VERSION_NAME="$(head -1 "${SRCDIR}/VERSION" | tr -d '[:space:]' | cut -d'-' -f1)"
+fi
+
+VERSION_ARGS=("-p:ApplicationDisplayVersion=${VERSION_NAME}")
 if [ -n "${BUILD_NUMBER:-}" ]; then
-	VERSION_ARGS+=("-p:AndroidVersionCode=${BUILD_NUMBER}")
+	VERSION_ARGS+=("-p:ApplicationVersion=${BUILD_NUMBER}")
 fi
 
 ###############################################################################
@@ -329,7 +348,7 @@ echo "==> Building OpenRA Android ${ANDROID_PACKAGE_FORMAT} (${CONFIGURATION})..
 echo "    ABIs   : armeabi-v7a arm64-v8a x86_64"
 echo "    Version: ${VERSION_NAME}"
 
-dotnet build "${ANDROID_CSPROJ}" \
+"${DOTNET}" build "${ANDROID_CSPROJ}" \
 	-c "${CONFIGURATION}" \
 	-p:AndroidBuild=true \
 	-p:AndroidPackageFormat="${ANDROID_PACKAGE_FORMAT}" \
@@ -352,9 +371,10 @@ else
 	EXT="apk"
 fi
 
-ARTIFACT="${SRCDIR}/OpenRA.Platforms.Android/obj/bin/net8.0-android34.0/com.bigbangit.openra.android-Signed.${EXT}"
-if [ ! -f "${ARTIFACT}" ]; then
-	echo >&2 "ERROR: artifact not found at ${ARTIFACT}"
+ARTIFACT_DIR="${SRCDIR}/OpenRA.Platforms.Android/obj/bin/net9.0-android35.0"
+ARTIFACT="$(find "${ARTIFACT_DIR}" -maxdepth 4 -type f -name "com.bigbangit.openra.android-Signed.${EXT}" | sort | tail -1)"
+if [ -z "${ARTIFACT}" ] || [ ! -f "${ARTIFACT}" ]; then
+	echo >&2 "ERROR: signed ${EXT} artifact not found under ${ARTIFACT_DIR}"
 	exit 1
 fi
 

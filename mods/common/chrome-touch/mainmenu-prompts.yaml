@@ -495,3 +495,5 @@ Background@MAINMENU_SYSTEM_INFO_PROMPT:
 			Text: button-continue
 			Font: Bold
 			Key: return
+Background@MAINMENU_INTRODUCTION_PROMPT:
+	Height: 480

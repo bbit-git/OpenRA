@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using Android.App;
 using Android.Content;
 using Android.Content.PM;
@@ -8,8 +7,6 @@ using Android.Graphics.Drawables;
 using Android.OS;
 using Android.Views;
 using Android.Widget;
-using OpenRA;
-using OpenRA.FileSystem;
 
 namespace OpenRA.Platforms.Android
 {
@@ -27,9 +24,14 @@ namespace OpenRA.Platforms.Android
 		Exported = true)]
 	public class LauncherActivity : Activity
 	{
-		static readonly string[] PreferredModOrder = { "cnc", "ra", "d2k", "ts" };
-		string internalPath;
-		string engineDir;
+		static readonly ModTemplate[] PreferredMods =
+		{
+			new("cnc", "Tiberian Dawn"),
+			new("ra", "Red Alert"),
+			new("d2k", "Dune 2000"),
+			new("ts", "Tiberian Sun")
+		};
+
 		List<ModInfo> mods;
 
 		protected override void OnCreate(Bundle savedInstanceState)
@@ -37,121 +39,65 @@ namespace OpenRA.Platforms.Android
 			SetTheme(Resource.Style.LauncherTheme);
 			base.OnCreate(savedInstanceState);
 
-			var paths = EngineAssets.Prepare(this);
-			internalPath = paths.InternalPath;
-			engineDir = paths.EngineDir;
-
 			SetContentView(Resource.Layout.activity_launcher);
+			SetLauncherLoadingState(false);
 
 			mods = LoadMods();
 			PopulateModIcons();
+		}
 
+		protected override void OnResume()
+		{
+			base.OnResume();
+			SetLauncherLoadingState(false);
 		}
 
 		List<ModInfo> LoadMods()
 		{
-			var modsRoot = Path.Combine(engineDir, "mods");
-			if (!Directory.Exists(modsRoot))
-				return new List<ModInfo>();
-
 			var list = new List<ModInfo>();
-			foreach (var directory in Directory.GetDirectories(modsRoot))
+			var bundledMods = GetBundledMods();
+
+			foreach (var mod in PreferredMods)
 			{
-				var modId = Path.GetFileName(directory);
-				if (string.IsNullOrEmpty(modId))
+				if (bundledMods.Count > 0 && !bundledMods.Contains(mod.Id))
 					continue;
 
-				var modInfo = TryLoadMod(directory, modId);
-				if (modInfo != null)
-					list.Add(modInfo);
+				list.Add(new ModInfo(mod.Id, mod.Title, $"engine/mods/{mod.Id}/icon-3x.png"));
 			}
 
-			list.Sort(CompareMods);
 			return list;
 		}
 
-		static int CompareMods(ModInfo a, ModInfo b)
+		HashSet<string> GetBundledMods()
 		{
-			var aIndex = Array.IndexOf(PreferredModOrder, a.Id);
-			var bIndex = Array.IndexOf(PreferredModOrder, b.Id);
-
-			if (aIndex >= 0 || bIndex >= 0)
-			{
-				if (aIndex < 0)
-					return 1;
-
-				if (bIndex < 0)
-					return -1;
-
-				if (aIndex != bIndex)
-					return aIndex.CompareTo(bIndex);
-			}
-
-			return string.Compare(a.Title, b.Title, StringComparison.OrdinalIgnoreCase);
-		}
-
-		ModInfo TryLoadMod(string modDir, string modId)
-		{
-			var modYaml = Path.Combine(modDir, "mod.yaml");
-			if (!File.Exists(modYaml))
-				return null;
-
 			try
 			{
-				using var package = new Folder(modDir);
-				var manifest = new Manifest(modId, package);
-				if (manifest.Metadata.Hidden)
-					return null;
+				var modDirs = Assets.List("engine/mods");
+				var result = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+				if (modDirs == null)
+					return result;
 
-				var title = manifest.Metadata.Title;
-				if (!TryResolveFluentTitle(modDir, title, out var resolved))
-					resolved = title;
+				foreach (var modDir in modDirs)
+				{
+					if (string.IsNullOrWhiteSpace(modDir))
+						continue;
 
-				if (string.IsNullOrWhiteSpace(resolved))
-					resolved = modId;
+					if (modDir == "common" || modDir == "common-content" || modDir == "common-touch")
+						continue;
 
-				var iconPath = GetModIconPath(modDir);
-				return new ModInfo(modId, resolved, manifest.Metadata.Version, iconPath);
+					if (modDir.EndsWith("-content", StringComparison.OrdinalIgnoreCase))
+						continue;
+
+					result.Add(modDir);
+				}
+
+				return result;
 			}
 			catch (Exception ex)
 			{
-				global::Android.Util.Log.Warn("OpenRA", $"Skipping mod '{modId}': {ex.Message}");
-				return null;
+				global::Android.Util.Log.Warn("OpenRA", $"Launcher asset scan failed: {ex.Message}");
+				return new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 			}
-		}
-
-		string GetModIconPath(string modDir)
-		{
-			var iconFile = Path.Combine(modDir, "icon-3x.png");
-			return File.Exists(iconFile) ? iconFile : null;
-		}
-
-		bool TryResolveFluentTitle(string modDir, string key, out string title)
-		{
-			title = null;
-			if (string.IsNullOrWhiteSpace(key))
-				return false;
-
-			var fluentDir = Path.Combine(modDir, "fluent");
-			if (!Directory.Exists(fluentDir))
-				return false;
-
-			var assignment = key + " =";
-			foreach (var file in Directory.EnumerateFiles(fluentDir, "*.ftl"))
-			{
-				foreach (var line in File.ReadLines(file))
-				{
-					var trimmed = line.Trim();
-					if (!trimmed.StartsWith(assignment, StringComparison.Ordinal))
-						continue;
-
-					title = trimmed.Substring(assignment.Length).Trim();
-					if (!string.IsNullOrEmpty(title))
-						return true;
-				}
-			}
-
-			return false;
 		}
 
 		void PopulateModIcons()
@@ -179,6 +125,7 @@ namespace OpenRA.Platforms.Android
 				var tile = inflater.Inflate(Resource.Layout.launcher_mod_item, iconRow, false);
 				var selectedMod = mod;
 				tile.Click += (_, _) => LaunchMod(selectedMod);
+				tile.ContentDescription = mod.Title;
 
 				var layoutParams = new LinearLayout.LayoutParams(
 					ViewGroup.LayoutParams.WrapContent,
@@ -195,40 +142,71 @@ namespace OpenRA.Platforms.Android
 
 		void LaunchMod(ModInfo mod)
 		{
+			SetLauncherLoadingState(true);
+
 			var intent = new Intent(this, typeof(MainActivity));
 			intent.PutExtra(MainActivity.ModIntentKey, mod.Id);
 			StartActivity(intent);
 			Finish();
 		}
 
+		void SetLauncherLoadingState(bool isLoading)
+		{
+			var tagline = FindViewById<TextView>(Resource.Id.launcher_tagline);
+			if (tagline == null)
+				return;
+
+			tagline.Text = isLoading
+				? GetString(Resource.String.launcher_loading)
+				: GetString(Resource.String.launcher_tagline);
+		}
+
 		void SetIconDrawable(ImageView icon, string path)
 		{
-			if (!string.IsNullOrEmpty(path) && File.Exists(path))
+			if (!string.IsNullOrEmpty(path))
 			{
-				var drawable = Drawable.CreateFromPath(path);
-				if (drawable != null)
+				try
 				{
-					icon.SetImageDrawable(drawable);
-					return;
+					using var stream = Assets.Open(path);
+					var drawable = Drawable.CreateFromStream(stream, path);
+					if (drawable != null)
+					{
+						icon.SetImageDrawable(drawable);
+						return;
+					}
+				}
+				catch
+				{
+					// Fall back to generic launcher icon.
 				}
 			}
 
 			icon.SetImageResource(Resource.Mipmap.ic_launcher);
 		}
 
-		sealed class ModInfo
+		readonly struct ModTemplate
 		{
-			public ModInfo(string id, string title, string version, string iconPath)
+			public ModTemplate(string id, string title)
 			{
 				Id = id;
 				Title = title;
-				Version = version;
+			}
+
+			public string Id { get; }
+			public string Title { get; }
+		}
+
+		sealed class ModInfo
+		{
+			public ModInfo(string id, string title, string iconPath)
+			{
+				Id = id;
+				Title = title;
 				IconPath = iconPath;
 			}
 
 			public string Id { get; }
 			public string Title { get; }
-			public string Version { get; }
 			public string IconPath { get; }
 		}
 	}

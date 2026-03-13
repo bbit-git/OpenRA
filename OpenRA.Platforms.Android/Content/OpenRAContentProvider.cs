@@ -9,20 +9,22 @@ using Uri = Android.Net.Uri;
 namespace OpenRA.Platforms.Android.Content
 {
 	/// <summary>
-	/// Android ContentProvider that exposes the OpenRA Content directory
+	/// Android ContentProvider logic for exposing the OpenRA Content directory
 	/// via content:// URIs. Allows authorized apps (signed with the same
 	/// key) to read and write game content files.
 	///
 	/// URI format: content://com.bigbangit.openra.android.content/file/{relative-path}
 	///
 	/// Android-specific integration layer for external content management.
+	///
+	/// IMPORTANT:
+	/// Do not register this managed ContentProvider directly via a
+	/// [ContentProvider] assembly attribute. Android creates providers before
+	/// the .NET runtime is initialized, which causes startup crashes with
+	/// UnsatisfiedLinkError on the generated n_onCreate() JNI bridge.
+	/// If this feature is needed again, it should be reintroduced via a Java
+	/// provider stub or another startup-safe native entry point.
 	/// </summary>
-	[ContentProvider(
-		new[] { OpenRAContentContract.Authority },
-		Exported = true,
-		GrantUriPermissions = true,
-		ReadPermission = OpenRAContentContract.Permission,
-		WritePermission = OpenRAContentContract.Permission)]
 	public class OpenRAContentProvider : ContentProvider
 	{
 		string rootPath = "";
