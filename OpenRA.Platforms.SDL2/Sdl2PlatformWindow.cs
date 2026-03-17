@@ -33,7 +33,7 @@ namespace OpenRA.Platforms.SDL2
 		bool disposed;
 
 		readonly object syncObject = new();
-		readonly Size windowSize;
+		Size windowSize;
 		Size surfaceSize;
 		float windowScale = 1f;
 		int2? lockedMousePosition;
@@ -517,7 +517,7 @@ namespace OpenRA.Platforms.SDL2
 		{
 			// The ratio between pixels and points can change when moving between displays in OSX
 			// We need to recalculate our scale to account for the potential change in the actual rendered area
-			if (Platform.CurrentPlatform == PlatformType.OSX)
+			if (Platform.CurrentPlatform == PlatformType.OSX || Platform.CurrentPlatform == PlatformType.Android)
 			{
 				SDL.SDL_GL_GetDrawableSize(Window, out var width, out var height);
 
@@ -528,7 +528,16 @@ namespace OpenRA.Platforms.SDL2
 					{
 						oldScale = windowScale;
 						surfaceSize = new Size(width, height);
-						windowScale = width * 1f / windowSize.Width;
+						
+						if (Platform.CurrentPlatform == PlatformType.Android)
+						{
+							windowSize = new Size((int)(surfaceSize.Width / windowScale), (int)(surfaceSize.Height / windowScale));
+							Console.WriteLine($"Android WindowSizeChanged: new surface={surfaceSize.Width}x{surfaceSize.Height} window={windowSize.Width}x{windowSize.Height}");
+						}
+						else
+						{
+							windowScale = width * 1f / windowSize.Width;
+						}
 					}
 
 					OnWindowScaleChanged(oldScale, oldScale * scaleModifier, windowScale, windowScale * scaleModifier);
