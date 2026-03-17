@@ -1,0 +1,20 @@
+Container@PLAYER_WIDGETS:
+	Children:
+		Container@DESELECT_TOUCH:
+			Logic: CommandBarLogic
+			Width: WINDOW_WIDTH
+			Height: WINDOW_HEIGHT
+			Children:
+				RoundButton@DESELECT:
+					X: 8
+					Y: WINDOW_HEIGHT - 100
+					Width: 48
+					Height: 48
+					DrawCircularChrome: false
+					DrawSelectionOutlineIcon: true
+					SelectionOutlineColor: FFFFFF
+					SelectionOutlinePadding: 12
+					SelectionOutlineDisabledOpacity: 0.2
+					VisualHeight: 0
+					TooltipText: button-deselect.tooltip
+					TooltipContainer: TOOLTIP_CONTAINER

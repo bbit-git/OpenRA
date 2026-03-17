@@ -100,6 +100,11 @@ android:
 		CONFIGURATION=$(CONFIGURATION) \
 		packaging/android/buildpackage.sh $(OUTPUTDIR)
 
+android-bundle:
+	@ANDROID_SDK=$(ANDROID_SDK) ANDROID_NDK=$(ANDROID_NDK) JAVA_HOME=$(JAVA_HOME) \
+		CONFIGURATION=$(CONFIGURATION) ANDROID_PACKAGE_FORMAT=aab \
+		packaging/android/buildpackage.sh $(OUTPUTDIR)
+
 android-logs:
 	@adb logcat --pid=$$(adb shell pidof -s com.bigbangit.openra.android)
 
@@ -116,7 +121,7 @@ clean-build-cache:
 # Deleting the intermediate / output directories ensures the build directory is actually clean
 clean:
 	@-$(RM_RF) ./bin ./*/obj
-	@-$(RM_F) IP2LOCATION-LITE-DB1.IPV6.BIN.ZIP
+	@-$(RM_F) IP2LOCATION-LITE-DB1.IPV6.BIN.ZIP VERSION_ANDROID
 
 check:
 	@echo
@@ -170,6 +175,15 @@ endif
 	@sh -c '. ./packaging/functions.sh; set_engine_version "$(VERSION)" .'
 	@sh -c '. ./packaging/functions.sh; set_mod_version "$(VERSION)" mods/*/mod.yaml'
 
+version-android:
+	@if [ -z "$(VERSION_NAME)" ] || [ -z "$(VERSION_CODE)" ]; then \
+		echo "Usage: make version-android VERSION_NAME=24.03.11 VERSION_CODE=24031101"; \
+		exit 1; \
+	fi
+	@echo "$(VERSION_NAME)" > VERSION_ANDROID
+	@echo "$(VERSION_CODE)" >> VERSION_ANDROID
+	@echo "Created VERSION_ANDROID with name $(VERSION_NAME) and code $(VERSION_CODE)"
+
 install:
 	@sh -c '. ./packaging/functions.sh; install_assemblies $(CWD) $(DESTDIR)$(gameinstalldir) $(TARGETPLATFORM) True True True'
 	@sh -c '. ./packaging/functions.sh; install_data $(CWD) $(DESTDIR)$(gameinstalldir) cnc d2k ra'
@@ -191,8 +205,11 @@ help:
 	@echo 'to compile using system libraries for native dependencies, run:'
 	@echo '  make TARGETPLATFORM=unix-generic'
 	@echo
-	@echo 'to build the Android APK (or AAB), run:'
+	@echo 'to build the Android APK, run:'
 	@echo '  make android'
+	@echo
+	@echo 'to build the Android App Bundle (.aab), run:'
+	@echo '  make android-bundle'
 	@echo
 	@echo 'to clear the Android native library build cache, run:'
 	@echo '  make clean-build-cache'
@@ -218,6 +235,9 @@ help:
 	@echo
 	@echo 'to install a Unix man page'
 	@echo '  make install-man'
+	@echo
+	@echo 'to set Android version name and code, run:'
+	@echo '  make version-android VERSION_NAME=24.03.11 VERSION_CODE=24031101'
 
 ########################### MAKEFILE SETTINGS ##########################
 #
@@ -225,4 +245,4 @@ help:
 
 .SUFFIXES:
 
-.PHONY: all android android-logs install-android clean clean-build-cache check check-scripts test version install install-linux-shortcuts install-linux-appdata install-man help
+.PHONY: all android android-bundle android-logs install-android clean clean-build-cache check check-scripts test version version-android install install-linux-shortcuts install-linux-appdata install-man help

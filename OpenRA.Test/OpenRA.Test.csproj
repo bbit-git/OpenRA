@@ -5,6 +5,7 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\OpenRA.Game\OpenRA.Game.csproj" />
+		<ProjectReference Include="..\OpenRA.Platforms.SDL2\OpenRA.Platforms.SDL2.csproj" />
 		<ProjectReference Include="..\OpenRA.Mods.Common\OpenRA.Mods.Common.csproj">
 			<Private>True</Private>
 		</ProjectReference>

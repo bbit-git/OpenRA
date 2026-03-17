@@ -11,6 +11,7 @@
 
 using System.Linq;
 using OpenRA.Mods.Common.Traits;
+using OpenRA.Mods.Common.Widgets;
 using OpenRA.Widgets;
 
 namespace OpenRA.Mods.Common.Widgets.Logic
@@ -20,6 +21,7 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 		readonly World world;
 		readonly Widget worldRoot;
 		readonly Widget menuRoot;
+		readonly MenuButtonWidget optionsButton;
 
 		bool disableSystemButtons;
 		Widget currentWidget;
@@ -33,21 +35,21 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 			menuRoot = Ui.Root.Get("MENU_ROOT");
 
 			// System buttons
-			var options = widget.GetOrNull<MenuButtonWidget>("OPTIONS_BUTTON");
-			if (options != null)
+			optionsButton = widget.GetOrNull<MenuButtonWidget>("OPTIONS_BUTTON");
+			if (optionsButton != null)
 			{
 				var blinking = false;
 				var lp = world.LocalPlayer;
-				options.IsDisabled = () => disableSystemButtons;
-				options.OnClick = () =>
+				optionsButton.IsDisabled = () => disableSystemButtons;
+				optionsButton.OnClick = () =>
 				{
 					blinking = false;
-					OpenMenuPanel(options, new WidgetArgs()
+					OpenMenuPanel(optionsButton, new WidgetArgs()
 					{
 						{ "initialPanel", IngameInfoPanel.AutoSelect }
 					});
 				};
-				options.IsHighlighted = () => blinking && Game.LocalTick % 50 < 25;
+				optionsButton.IsHighlighted = () => blinking && Game.LocalTick % 50 < 25;
 
 				if (lp != null)
 				{
@@ -62,6 +64,9 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 					if (mo != null)
 						mo.ObjectiveAdded += StartBlinking;
 				}
+
+				if (Platform.CurrentPlatform == PlatformType.Android)
+					Game.OnApplicationEnteringBackground += OpenPauseMenuOnBackground;
 			}
 
 			var debug = widget.GetOrNull<MenuButtonWidget>("DEBUG_BUTTON");
@@ -119,6 +124,37 @@ namespace OpenRA.Mods.Common.Widgets.Logic
 
 			currentWidget = Game.LoadWidget(world, button.MenuContainer, menuRoot, widgetArgs);
 			Game.RunAfterTick(Ui.ResetTooltips);
+		}
+
+		void OpenPauseMenuOnBackground()
+		{
+			Game.RunAfterTick(() =>
+			{
+				if (!CanOpenPauseMenuOnBackground())
+					return;
+
+				Sync.RunUnsynced(world, optionsButton.OnClick);
+			});
+		}
+
+		bool CanOpenPauseMenuOnBackground()
+		{
+			return optionsButton != null
+				&& Game.IsCurrentWorld(world)
+				&& world.Type == WorldType.Regular
+				&& !world.IsReplay
+				&& !disableSystemButtons
+				&& optionsButton.IsVisible()
+				&& !optionsButton.IsDisabled()
+				&& menuRoot.Children.Count == 0;
+		}
+
+		protected override void Dispose(bool disposing)
+		{
+			if (disposing && optionsButton != null && Platform.CurrentPlatform == PlatformType.Android)
+				Game.OnApplicationEnteringBackground -= OpenPauseMenuOnBackground;
+
+			base.Dispose(disposing);
 		}
 	}
 }
