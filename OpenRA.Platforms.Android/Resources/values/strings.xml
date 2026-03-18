@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-	<string name="app_name">OpenRA for Android</string>
-	<string name="app_subtitle">Unofficial Android port</string>
+	<string name="app_name">RedOps RTS</string>
+	<string name="app_subtitle">Unofficial OpenRA Android port</string>
 	<string name="launcher_tagline">Choose Your Destiny</string>
 	<string name="launcher_loading">Loading ...</string>
 	<string name="launcher_no_mods">No mods were found.</string>
-	<string name="launcher_disclaimer">Unofficial community project. OpenRA and all referenced game names and trademarks belong to their respective owners. Not affiliated with or endorsed by the original rights holders.</string>
+	<string name="launcher_disclaimer">Unofficial project. Not affiliated with or endorsed by Electronic Arts (EA). All trademarks belong to their respective owners.</string>
 </resources>
