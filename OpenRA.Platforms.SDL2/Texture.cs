@@ -140,12 +140,13 @@ namespace OpenRA.Platforms.SDL2
 			if (!Exts.IsPowerOf2(rect.Width) || !Exts.IsPowerOf2(rect.Height))
 				throw new InvalidDataException($"Non-power-of-two rectangle {rect.Width}x{rect.Height}");
 
+			var size = new Size(rect.Width, rect.Height);
+			if (Size != size)
+				SetEmpty(rect.Width, rect.Height);
+
 			PrepareTexture();
 
-			// GLES does not support GL_BGRA as an internal format for glCopyTexImage2D on many drivers.
-			// GL_RGBA is universally supported and the driver handles framebuffer format conversion.
-			var glInternalFormat = OpenGL.Profile == GLProfile.Embedded ? OpenGL.GL_RGBA : OpenGL.GL_RGBA8;
-			OpenGL.glCopyTexImage2D(OpenGL.GL_TEXTURE_2D, 0, glInternalFormat, rect.X, rect.Y, rect.Width, rect.Height, 0);
+			OpenGL.glCopyTexSubImage2D(OpenGL.GL_TEXTURE_2D, 0, 0, 0, rect.X, rect.Y, rect.Width, rect.Height);
 			OpenGL.CheckGLError();
 		}
 

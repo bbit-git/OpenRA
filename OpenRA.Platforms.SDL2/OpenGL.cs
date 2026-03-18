@@ -458,6 +458,10 @@ namespace OpenRA.Platforms.SDL2
 			int x, int y, int width, int height, int border);
 		public static CopyTexImage2D glCopyTexImage2D { get; private set; }
 
+		public delegate void CopyTexSubImage2D(int target, int level, int xoffset, int yoffset,
+			int x, int y, int width, int height);
+		public static CopyTexSubImage2D glCopyTexSubImage2D { get; private set; }
+
 		public delegate void GetTexImage(int target, int level,
 			int format, int type, IntPtr pixels);
 		public static GetTexImage glGetTexImage { get; private set; }
@@ -628,6 +632,7 @@ namespace OpenRA.Platforms.SDL2
 				glActiveTexture = Bind<ActiveTexture>("glActiveTexture");
 				glTexImage2D = Bind<TexImage2D>("glTexImage2D");
 				glCopyTexImage2D = Bind<CopyTexImage2D>("glCopyTexImage2D");
+				glCopyTexSubImage2D = Bind<CopyTexSubImage2D>("glCopyTexSubImage2D");
 				glTexParameteri = Bind<TexParameteri>("glTexParameteri");
 				glTexParameterf = Bind<TexParameterf>("glTexParameterf");
 
