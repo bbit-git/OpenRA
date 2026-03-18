@@ -100,17 +100,33 @@ android:
 		CONFIGURATION=$(CONFIGURATION) \
 		packaging/android/buildpackage.sh $(OUTPUTDIR)
 
+android-debug:
+	@ANDROID_SDK=$(ANDROID_SDK) ANDROID_NDK=$(ANDROID_NDK) JAVA_HOME=$(JAVA_HOME) \
+		CONFIGURATION=Debug \
+		packaging/android/buildpackage.sh $(OUTPUTDIR)
+
 android-bundle:
 	@ANDROID_SDK=$(ANDROID_SDK) ANDROID_NDK=$(ANDROID_NDK) JAVA_HOME=$(JAVA_HOME) \
 		CONFIGURATION=$(CONFIGURATION) ANDROID_PACKAGE_FORMAT=aab \
+		packaging/android/buildpackage.sh $(OUTPUTDIR)
+
+android-debug-bundle:
+	@ANDROID_SDK=$(ANDROID_SDK) ANDROID_NDK=$(ANDROID_NDK) JAVA_HOME=$(JAVA_HOME) \
+		CONFIGURATION=Debug ANDROID_PACKAGE_FORMAT=aab \
 		packaging/android/buildpackage.sh $(OUTPUTDIR)
 
 android-logs:
 	@adb logcat --pid=$$(adb shell pidof -s com.bigbangit.openra.android)
 
 install-android:
-	$(eval APK := $(shell ls -t $(OUTPUTDIR)/OpenRA-Android-*.apk 2>/dev/null | head -1))
+	$(eval APK := $(shell ls -t $(OUTPUTDIR)/OpenRA-Android-*.apk 2>/dev/null | grep -v "\-debug\.apk" | head -1))
 	@[ -n "$(APK)" ] || { echo "No APK found in $(OUTPUTDIR). Run 'make android' first."; exit 1; }
+	@echo "Installing $(APK)..."
+	@adb install "$(APK)"
+
+install-android-debug:
+	$(eval APK := $(shell ls -t $(OUTPUTDIR)/OpenRA-Android-*-debug.apk 2>/dev/null | head -1))
+	@[ -n "$(APK)" ] || { echo "No APK found in $(OUTPUTDIR). Run 'make android-debug' first."; exit 1; }
 	@echo "Installing $(APK)..."
 	@adb install "$(APK)"
 
@@ -245,4 +261,4 @@ help:
 
 .SUFFIXES:
 
-.PHONY: all android android-bundle android-logs install-android clean clean-build-cache check check-scripts test version version-android install install-linux-shortcuts install-linux-appdata install-man help
+.PHONY: all android android-debug android-bundle android-logs install-android install-android-debug clean clean-build-cache check check-scripts test version version-android install install-linux-shortcuts install-linux-appdata install-man help

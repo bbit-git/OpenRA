@@ -378,7 +378,11 @@ if [ -z "${ARTIFACT}" ] || [ ! -f "${ARTIFACT}" ]; then
 	exit 1
 fi
 
-DEST="${OUTPUTDIR}/OpenRA-Android-${VERSION_NAME}.${EXT}"
+if [ "${CONFIGURATION}" = "Debug" ]; then
+	DEST="${OUTPUTDIR}/OpenRA-Android-${VERSION_NAME}-debug.${EXT}"
+else
+	DEST="${OUTPUTDIR}/OpenRA-Android-${VERSION_NAME}.${EXT}"
+fi
 cp "${ARTIFACT}" "${DEST}"
 
 echo ""

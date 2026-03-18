@@ -16,6 +16,7 @@
 		<!-- Android-specific -->
 		<AndroidApplication>true</AndroidApplication>
 		<AndroidGenerateApplicationPackage>true</AndroidGenerateApplicationPackage>
+		<EmbedAssembliesIntoApk>true</EmbedAssembliesIntoApk>
 		<!-- Default to fat APK for sideloading; pass -p:AndroidPackageFormat=aab for Play Store -->
 		<AndroidPackageFormat Condition="'$(AndroidPackageFormat)'==''">apk</AndroidPackageFormat>
 		<!-- Version wired to VERSION file; override with VERSION_ANDROID if present.
